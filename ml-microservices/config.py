@@ -1,0 +1,3 @@
+# config.py
+ELEVENLABS_API_KEY = '3af1ac626a39f4e94f705b6256997d4e'
+VOICE_ID = 'u9rMaEr9mtt3mbV1ay8G'

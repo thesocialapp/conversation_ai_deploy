@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  go-service:
+    build:
+      context: .
+      dockerfile: Dockerfile-go
+    ports:
+      - "8080:8080"
+
+  python-service:
+    build:
+      context: .
+      dockerfile: Dockerfile-python
+    ports:
+      - "8000:8000"

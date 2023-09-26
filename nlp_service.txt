@@ -1,0 +1,14 @@
+
+*// from fastapi import FastAPI, HTTPException
+from your_project.models import TextRequest, TextResponse
+
+app = FastAPI()
+
+@app.post("/processText/")
+def process_text(request: TextRequest):
+    try:
+        # Assuming you have a function `process_with_falcon` that uses Falcon-7B for processing.
+        response = process_with_falcon(request.text)
+        return TextResponse(response=response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) //*

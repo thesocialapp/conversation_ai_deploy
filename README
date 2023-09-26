@@ -1,0 +1,117 @@
+# Conversational AI Assistant 
+
+Conversational AI assistant that provides natural dialogs using Falcon and maintains user context.
+
+## Architecture
+
+![Architecture diagram](architecture.png)
+
+The system follows a microservices architecture optimized for Python and Golang.
+
+**Python Services**
+
+- `text_processing` - Falcon Large Language Model for textual interactions
+- `speech` - Speech-to-text and text-to-speech APIs
+
+**Golang Services** 
+
+- `server` - API server and orchestration layer
+
+**Data Stores**
+
+- PostgreSQL - Persists user memory and conversations
+
+**Frontend** 
+
+- React web UI for text-based conversations
+
+## Codebase Overview
+
+The project contains the following key files and components:
+
+**Python Services**
+
+- `text_processing.py` - Main NLP processing using Falcon. Generates responses and handles user memory.
+- `speech.py` - Handles speech-to-text and text-to-speech using external APIs. 
+- `history.py` - Manages user conversation history tracking and persistence.
+- `config.py` - Configuration like API keys, cache TTLs etc.
+
+**Golang Services**
+
+- `server.go` - Main API server, routing, middleware, orchestration.
+- `memory.go` - Handles data persistence using PostgreSQL.
+- `communication.go` - Logic to call Python services.
+
+**Infrastructure**  
+
+- `docker-compose.yml` - Defines Docker services for local deployment.
+- `Kubernetes YAMLs` - For container orchestration and deployment.
+
+**Frontend**
+
+- `index.html` - Simple HTML page with chat interface.
+- `client.js` - Javascript code driving the web UI.
+
+**Tests**
+
+- `unit_tests/` - Unit tests for key services.
+- `integration_tests/` - End-to-end behavior validation.
+
+**Configs**  
+
+- `.env` - Environment variables and secrets.
+- `setup.cfg` - App configuration settings.
+
+## Setup
+
+### Prerequisites
+
+- Python 3.7+
+- Golang 1.15+
+- Docker
+- Anthropic API Key
+
+### Installation
+
+1. Clone repo
+
+```bash
+git clone https://github.com/user/conversational-ai.git
+```
+
+2. Install Python dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Install Golang dependencies
+
+```bash
+go get ./...
+```
+
+4. Start PostgreSQL database
+
+5. Build Docker images
+
+```bash 
+docker-compose build
+```
+
+6. Run services
+
+```
+docker-compose up
+```
+
+7. Access web UI at http://localhost:3000
+
+## Usage
+
+- Speak or type conversations with the assistant
+- Session is maintained throughout dialogs
+- Assistant leverages memory and context for consistency 
+
+
+Please follow code styleguides and ensure any new functionality is covered by tests.
