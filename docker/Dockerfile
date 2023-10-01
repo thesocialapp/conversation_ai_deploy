@@ -7,9 +7,10 @@ WORKDIR /app/ml-microservices
 # Install any needed packages specified in requirements.txt
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install transformers flask elevenlabs deepgram
 
 # Copy the current directory contents into the container at /app
-COPY ./ml-microservices/processing.py /app/ml-microservices/
+COPY ./processing.py /app/
 
 # Make port 80 available to the world outside this container
 EXPOSE 80

@@ -2,7 +2,7 @@
 FROM python:3.8-slim
 
 # Install dependencies
-RUN pip install transformers flask
+RUN pip install transformers flask elevenlabs deepgram
 
 # Copy script
 COPY ./ml-microservices/processing.py /app/
