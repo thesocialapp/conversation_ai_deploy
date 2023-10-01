@@ -5,7 +5,10 @@ FROM python:3.8-slim
 RUN pip install transformers flask
 
 # Copy script
-COPY ml-microservices/processing.py /app/ 
+COPY ./ml-microservices/processing.py /app/
+
+# Set work directory
+WORKDIR /app/ml-microservices
 
 # Set work directory
 WORKDIR /app
