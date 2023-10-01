@@ -1,11 +1,14 @@
 # Use the official Golang image as a parent image.
 FROM golang:1.19-alpine
 
-# Set the Current Working Directory inside the container.
-WORKDIR /app
+# Set the Current Working Directory to root.
+WORKDIR /
 
 # Copy go mod and sum files to the workspace.
-COPY go.mod go.sum ./
+COPY go.mod ../go.sum ./
+
+# Set the Current Working Directory back to /app.
+WORKDIR /app
 
 # Download all dependencies.
 RUN go mod download
