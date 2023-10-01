@@ -1,8 +1,17 @@
 # Dockerfile-python
 FROM python:3.8-slim
 
+# Set the Current Working Directory inside the container to root.
+WORKDIR /
+
+# Copy requirements.txt
+COPY docker/requirements.txt ./
+
 # Install dependencies
+RUN pip install -r requirements.txt
+
 RUN pip install transformers flask elevenlabs deepgram
+ main
 
 # Copy script
 COPY ./ml-microservices/processing.py /app/
