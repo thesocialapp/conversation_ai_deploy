@@ -22,6 +22,62 @@ func main() {
 		logger.Errorw("Failed to start Socket.IO server", "error", err)
 		return
 	}
+	
+	// Gracefully shut down the Socket.IO server when the program is terminated.
+	defer socket.StopServer()
+	
+	router := gin.Default()
+	
+	// Health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
+	
+	// Metrics endpoint
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	
+	port := config.Config.Port
+	router.Run(":" + strconv.Itoa(port)) 
+	}
+	
+	func handleText(c *gin.Context) {
+	var input struct {
+		Text string `json:"text"`
+	}
+	
+	if err := c.BindJSON(&input); err != nil {
+		logger.Errorw("Invalid input",
+			"error", err)
+		c.AbortWithStatus(400)
+		return
+	}
+	
+	// Pass the trace ID to ProcessText.
+	traceID := c.GetHeader("X-Trace-ID")
+	
+	resp, err := communication.ProcessText(traceID, input.Text)
+	if err != nil {
+		logger.Errorw("Failed to call Python service",
+			"error", err)
+		c.AbortWithStatus(500)
+		return
+	}
+	
+	// Wait for socket connection before emitting events.
+	if !socket.IsRunning() {
+		logger.Error("Socket.IO server is not running")
+		c.AbortWithStatus(500)
+		return
+	}
+	
+	socket.OnConnect(func() {
+		socket.Emit(TextProcessed, gin.H{
+			"response": resp,
+		})
+	})
+	}
 
 	router := gin.Default()
 
