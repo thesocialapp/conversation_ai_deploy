@@ -1,29 +1,45 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8-slim
+# We initialize Golang first and use the alpine version
+# We set the working directory to /app and copy all files inside
+# We build the binary and name it main
+FROM golang:1.19-alpine3.16 AS builder
 
-# Set the working directory in the container to /app
+WORKDIR /app/cmd/cai
+# Copy all files from the current directory to the working directory
+# including the go.mod and go.sum files
+COPY . .
+# We build the binary from the cmd/cai folder
+RUN go build -o main cmd/cai/main.go
+
+# Path: Dockerfile
+# We initialize a new container from scratch
+# We copy the binary from the builder container to the new container
+# We set the entrypoint to the binary
+FROM alpine:3.16
+
+
+# We set up python and build it
+FROM python:3.9-alpine3.14 as pybuilder
+# We set the working directory to /internal/py and copy all files inside
+WORKDIR /internal/py
+COPY ./internal/py .
+# Copy the requirements.txt file from the base of the project to the working
+# directory
+COPY requirements.txt .
+
+# We install the dependencies from the requirements.txt file at the base of the 
+# project
+RUN pip install -r requirements.txt
+
+# We set up the final container
+FROM alpine:3.14
+
 WORKDIR /app
 
-# Add the current directory contents into the container at /app
-ADD . /app
+# We copy the binary from the builder container to the new container
+COPY --from=pybuilder /internal/py /app
+COPY --from=builder /app/cmd/cai/main /app/main
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+EXPOSE 8082
+CMD ["/app/main"]
 
-# Copy the Go.Sum file into the Docker image
-COPY go.sum /app
 
-# Run go mod download to download the required dependencies
-RUN go mod download
-
-# Build the Go application
-RUN go build -o main .
-
-# Make port 80 available to the world outside this container
-EXPOSE 80
-
-# Define environment variable
-ENV NAME World
-
-# Set the entrypoint to run the built Go application
-CMD ["./main"]
