@@ -1,0 +1,18 @@
+/* styles.css */
+.button {
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .button:disabled {
+    background-color: #dddddd;
+  }
+  
+  .error {
+    color: red;
+  }
+  
