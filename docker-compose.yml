@@ -1,0 +1,21 @@
+# docker-compose.yml
+
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile-go
+      args:
+        - GO111MODULE=on
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=conversation_ai
