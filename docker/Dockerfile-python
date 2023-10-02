@@ -11,6 +11,12 @@ COPY docker/requirements.txt ./
 RUN pip install -r requirements.txt
 
 RUN pip install transformers flask elevenlabs deepgram
+
+# Set work directory
+WORKDIR /app/ml-microservices
+
+# Command to run the script
+CMD ["python", "processing.py"]
  main
 
 # Copy script
