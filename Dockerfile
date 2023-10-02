@@ -26,6 +26,9 @@ COPY ./internal/py .
 # directory
 COPY requirements.txt .
 
+# Install Python
+RUN apk update && apk add python3
+
 # We install the dependencies from the requirements.txt file at the base of the 
 # project
 RUN pip install -r requirements.txt
@@ -36,7 +39,7 @@ FROM alpine:3.14
 WORKDIR /app
 
 # We copy the binary from the builder container to the new container
-COPY --from=pybuilder /internal/py /app
+COPY --from=pybuilder /internal/py /app/internal/py
 COPY --from=builder /app/cmd/cai/main /app/main
 
 EXPOSE 8082
