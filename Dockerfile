@@ -10,11 +10,20 @@ ADD . /app
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the Go.Sum file into the Docker image
+COPY go.sum /app
+
+# Run go mod download to download the required dependencies
+RUN go mod download
+
+# Build the Go application
+RUN go build -o main .
+
 # Make port 80 available to the world outside this container
 EXPOSE 80
 
 # Define environment variable
 ENV NAME World
 
-# Run app.py when the container launches
-CMD ["python", "ml-microservices/processing.py"]
+# Set the entrypoint to run the built Go application
+CMD ["./main"]
