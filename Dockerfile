@@ -16,9 +16,9 @@ RUN go build -o main cmd/cai/main.go
 # We set the entrypoint to the binary
 FROM alpine:3.16
 
-
 # We set up python and build it
 FROM python:3.9-alpine3.14 as pybuilder
+
 # We set the working directory to /internal/py and copy all files inside
 WORKDIR /internal/py
 COPY ./internal/py .
@@ -27,7 +27,7 @@ COPY ./internal/py .
 COPY requirements.txt .
 
 # Install Python
-RUN apk update && apk add python3
+RUN apk add --no-cache python3
 
 # We install the dependencies from the requirements.txt file at the base of the 
 # project
@@ -41,6 +41,8 @@ WORKDIR /app
 # We copy the binary from the builder container to the new container
 COPY --from=pybuilder /internal/py /app/internal/py
 COPY --from=builder /app/cmd/cai/main /app/main
+
+RUN chmod +x /app/internal/py/speech_processing/main.py
 
 EXPOSE 8082
 CMD ["/app/main"]

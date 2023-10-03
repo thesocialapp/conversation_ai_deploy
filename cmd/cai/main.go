@@ -8,7 +8,7 @@ import (
 
 func main() {
 	cmd := exec.Command("python", "main.py")
-	cmd.Dir = "/app/internal/py/speech_recognition"
+	cmd.Dir = "/app/internal/py/speech_processing"
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
