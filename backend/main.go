@@ -1,47 +1,30 @@
 package main
 
 import (
-	"log"
-	"os"
+	api "conversational_ai/backend/api/server"
+	"conversational_ai/backend/util"
 
-	"github.com/gin-gonic/gin"
-	socketio "github.com/googollee/go-socket.io"
+	"github.com/rs/zerolog/log"
 )
 
-var logger = log.New(os.Stdout, "", log.LstdFlags)
-
 func main() {
-	router := gin.New()
-	server := socketio.NewServer(nil)
-
-	redisOpts := &socketio.RedisAdapterOptions{
-		Host:   "localhost:6379",
-		Prefix: "io",
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal().Msgf("cannot load config %s", err.Error())
 	}
 
-	ok, err := server.Adapter(redisOpts)
-	if condition := ok && err == nil; !condition {
-		logger.Fatal(err)
+	log.Info().Msgf("Starting server at %v", config.HttpServerAddress)
+	setupGinServer(config)
+}
+
+// / Initializes the Gin server
+func setupGinServer(config util.Config) {
+	server, err := api.NewServer(config)
+	if err != nil {
+		log.Error().Err(err).Msg("cannot create server")
 	}
-
-	server.OnConnect("/", func(s socketio.Conn) error {
-		s.SetContext("")
-		logger.Println("connected:", s.ID())
-		return nil
-	})
-
-	router.GET("/io/*any", gin.WrapH(server))
-	router.POST("/io/*any", gin.WrapH(server))
-
-	go func() {
-		if err := server.Serve(); err != nil {
-			log.Fatalf("Socket.IO server failed to start: %v", err)
-		}
-	}()
-	// Defer closing the server
-	defer server.Close()
-
-	if err := router.Run(":8080"); err != nil {
-		logger.Fatal(err)
+	err = server.StartServer()
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot start server")
 	}
 }
