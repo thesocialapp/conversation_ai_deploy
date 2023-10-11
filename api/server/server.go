@@ -1,7 +1,7 @@
 package api
 
 import (
-	"conversational_ai/backend/util"
+	"conversational_ai/util"
 	"fmt"
 	"net/http"
 	"time"
@@ -58,13 +58,15 @@ func (s *Server) setupSocketIO() {
 	}
 
 	sock := socketio.NewServer(options)
+
 	redisOpts := &socketio.RedisAdapterOptions{
 		Host:   s.config.RedisAddr,
 		Prefix: s.config.RedisPrefix,
 	}
 	ok, err := sock.Adapter(redisOpts)
-	if condition := ok && err == nil; !condition {
-		log.Error().Err(err).Msg("cannot connect to redis")
+	fmt.Printf("Redis address %v and %s", ok, s.config.RedisAddr)
+	if condition := ok && err != nil; !condition {
+		log.Error().Err(err).Msgf("cannot connect to redis %s", err.Error())
 	}
 
 	// Handle socket.io events

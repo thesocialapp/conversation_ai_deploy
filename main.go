@@ -1,8 +1,8 @@
 package main
 
 import (
-	api "conversational_ai/backend/api/server"
-	"conversational_ai/backend/util"
+	api "conversational_ai/api/server"
+	"conversational_ai/util"
 
 	"github.com/rs/zerolog/log"
 )
