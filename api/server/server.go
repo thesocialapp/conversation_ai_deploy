@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
 	"github.com/rs/zerolog/log"
@@ -23,11 +24,23 @@ func NewServer(config util.Config) (*Server, error) {
 		config: config,
 	}
 
-	// Init Gin router
-	server.setUpRouter()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     config.RedisAddr,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	_, err := rdb.Ping().Result()
+
+	if err != nil {
+		log.Error().Err(err).Msgf("cannot connect to redis %s", err.Error())
+	}
 
 	// Init Socket IO
 	server.setupSocketIO()
+
+	// Init Gin router
+	server.setUpRouter()
 
 	return server, nil
 }
@@ -45,6 +58,11 @@ func (s *Server) setUpRouter() {
 		})
 	})
 
+	// Set up socket.io endpoint
+	ioRoutes := router.Group("/io").Use(allowOrigin("*"))
+	ioRoutes.GET("/", gin.WrapH(s.io))
+	ioRoutes.POST("/", gin.WrapH(s.io))
+
 	s.router = router
 }
 
@@ -60,18 +78,23 @@ func (s *Server) setupSocketIO() {
 	sock := socketio.NewServer(options)
 
 	redisOpts := &socketio.RedisAdapterOptions{
-		Host:   s.config.RedisAddr,
+		Addr:   s.config.RedisAddr,
 		Prefix: s.config.RedisPrefix,
 	}
+
 	ok, err := sock.Adapter(redisOpts)
-	fmt.Printf("Redis address %v and %s", ok, s.config.RedisAddr)
-	if condition := ok && err != nil; !condition {
+	log.Info().Msgf("Redis adapter created %v", ok)
+	if condition := ok && err == nil; !condition {
 		log.Error().Err(err).Msgf("cannot connect to redis %s", err.Error())
 	}
 
 	// Handle socket.io events
 	sock.OnConnect("/", s.onConnect)
 	sock.OnDisconnect("/", s.onDisconnect)
+
+	/// Set up upload audio event
+	sock.OnEvent("/", "stream-audio", s.streamAudio)
+
 	// Handle socket.io errors
 	sock.OnError("/", s.onError)
 
