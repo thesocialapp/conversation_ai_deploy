@@ -17,6 +17,11 @@ func (server *Server) onDisconnect(io socketio.Conn, reason string) {
 	log.Error().Msgf("Client disconnected: %s", reason)
 }
 
+func (server *Server) audioDetails(io socketio.Conn, data map[string]interface{}) {
+	log.Info().Msgf("Client audio details: %s", data["file"])
+	io.Emit("audioDetails", "ok ")
+}
+
 func (server *Server) streamAudio(io socketio.Conn, data map[string]interface{}) {
 	/// We use this to append the file chunks to a buffer
 	var fileBuffer bytes.Buffer

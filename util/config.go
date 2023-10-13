@@ -8,6 +8,7 @@ type Config struct {
 	RedisPrefix          string `mapstructure:"REDIS_PREFIX"`
 	SocketIOPingTimeout  int    `mapstructure:"SOCKET_IO_PING_TIMEOUT"`
 	SocketIOPingInterval int    `mapstructure:"SOCKET_IO_PING_INTERVAL"`
+	OpenAPIKey           string `mapstructure:"OPEN_API_KEY"`
 }
 
 // Load the app.env file and unmarshal it into the Config struct

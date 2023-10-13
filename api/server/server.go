@@ -11,17 +11,22 @@ import (
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 )
 
 type Server struct {
 	config util.Config
 	router *gin.Engine
 	io     *socketio.Server
+	client *openai.Client
 }
 
 func NewServer(config util.Config) (*Server, error) {
+	client := openai.NewClient(config.OpenAPIKey)
+
 	server := &Server{
 		config: config,
+		client: client,
 	}
 
 	rdb := redis.NewClient(&redis.Options{
@@ -94,6 +99,7 @@ func (s *Server) setupSocketIO() {
 
 	/// Set up upload audio event
 	sock.OnEvent("/", "stream-audio", s.streamAudio)
+	sock.OnEvent("/", "audio-details", s.audioDetails)
 
 	// Handle socket.io errors
 	sock.OnError("/", s.onError)
