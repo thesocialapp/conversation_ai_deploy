@@ -10,23 +10,38 @@ import (
 	"github.com/go-redis/redis"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
+	"github.com/pion/webrtc/v3"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 )
 
 type Server struct {
-	config util.Config
-	router *gin.Engine
-	io     *socketio.Server
-	client *openai.Client
+	config   util.Config
+	router   *gin.Engine
+	io       *socketio.Server
+	client   *openai.Client
+	peerConn *webrtc.PeerConnection
 }
 
 func NewServer(config util.Config) (*Server, error) {
 	client := openai.NewClient(config.OpenAPIKey)
+	rtcConfig := webrtc.Configuration{
+		ICEServers: []webrtc.ICEServer{
+			{
+				URLs: []string{"stun:stun.l.google.com:19302"},
+			},
+		},
+	}
+
+	peerConnection, err := webrtc.NewPeerConnection(rtcConfig)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create peer connection")
+	}
 
 	server := &Server{
-		config: config,
-		client: client,
+		config:   config,
+		client:   client,
+		peerConn: peerConnection,
 	}
 
 	rdb := redis.NewClient(&redis.Options{
@@ -35,7 +50,7 @@ func NewServer(config util.Config) (*Server, error) {
 		DB:       0,  // use default DB
 	})
 
-	_, err := rdb.Ping().Result()
+	_, err = rdb.Ping().Result()
 
 	if err != nil {
 		log.Error().Err(err).Msgf("cannot connect to redis %s", err.Error())
@@ -88,7 +103,6 @@ func (s *Server) setupSocketIO() {
 	}
 
 	ok, err := sock.Adapter(redisOpts)
-	log.Info().Msgf("Redis adapter created %v", ok)
 	if condition := ok && err == nil; !condition {
 		log.Error().Err(err).Msgf("cannot connect to redis %s", err.Error())
 	}
@@ -99,6 +113,7 @@ func (s *Server) setupSocketIO() {
 
 	/// Set up upload audio event
 	sock.OnEvent("/", "stream-audio", s.streamAudio)
+	sock.OnEvent("/", "rtc-offer", s.rtcOffer)
 	sock.OnEvent("/", "audio-details", s.audioDetails)
 
 	// Handle socket.io errors
@@ -120,4 +135,8 @@ func (s *Server) StartServer() error {
 
 	defer s.io.Close()
 	return s.router.Run(port)
+}
+
+func (s *Server) closeRTC() error {
+	return s.peerConn.Close()
 }

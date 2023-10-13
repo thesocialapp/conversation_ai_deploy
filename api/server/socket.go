@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	socketio "github.com/googollee/go-socket.io"
+	"github.com/pion/webrtc/v3"
 	"github.com/rs/zerolog/log"
 )
 
@@ -19,7 +20,18 @@ func (server *Server) onDisconnect(io socketio.Conn, reason string) {
 
 func (server *Server) audioDetails(io socketio.Conn, data map[string]interface{}) {
 	log.Info().Msgf("Client audio details: %s", data["file"])
-	io.Emit("audioDetails", "ok ")
+	io.Emit("audioResponse", "ok ")
+}
+
+func (server *Server) rtcOffer(io socketio.Conn, data map[string]interface{}) {
+	sdp, err := server.parseRTCOffer(data["offer"].(string))
+	if err != nil {
+		log.Error().Msgf("Client rtcOffer error: %s", err.Error())
+		io.Emit("rtcResponse", "error")
+		return
+	}
+	io.Emit("rtcResponse", sdp)
+	io.Emit("rtcResponse", "ok ")
 }
 
 func (server *Server) streamAudio(io socketio.Conn, data map[string]interface{}) {
@@ -27,16 +39,18 @@ func (server *Server) streamAudio(io socketio.Conn, data map[string]interface{})
 	var fileBuffer bytes.Buffer
 
 	// Process the file chunk data
-	log.Info().Msgf("Client file chunk: %s", data)
-	chunkData, ok := data["data"].([]byte)
+	log.Info().Msgf("Client file chunk: %s", data["chunk"])
+	chunkData, ok := data["chunk"].([]byte)
+	log.Info().Msgf("Client file chunk: %s", len(chunkData))
+
 	if !ok {
-		io.Emit("fileChunk", "fileparse error")
+		io.Emit("audioResponse", "fileparse error")
 		return
 	}
 
-	fileName, ok := data["fileName"].(string)
+	fileName, ok := data["blob-name"].(string)
 	if !ok {
-		io.Emit("fileChunk", "fileName error")
+		io.Emit("audioResponse", "fileName error")
 		return
 	}
 
@@ -44,10 +58,10 @@ func (server *Server) streamAudio(io socketio.Conn, data map[string]interface{})
 	if err != nil {
 		// Tell the user the file is too large
 		if err == bytes.ErrTooLarge {
-			io.Emit("fileChunk", "file too large")
+			io.Emit("audioResponse", "file too large")
 			return
 		}
-		io.Emit("fileChunk", "fileBuffer error")
+		io.Emit("audioResponse", "fileBuffer error")
 		return
 	}
 	io.Emit("transcriptionResult", "ok "+fileName)
@@ -55,4 +69,25 @@ func (server *Server) streamAudio(io socketio.Conn, data map[string]interface{})
 
 func (server *Server) onError(io socketio.Conn, err error) {
 	log.Error().Msgf("Client error: %s", err.Error())
+}
+
+func (server *Server) parseRTCOffer(offer string) (string, error) {
+	descr := webrtc.SessionDescription{
+		Type: webrtc.SDPTypeOffer,
+		SDP:  offer,
+	}
+	/// Set peer connection remote description
+	err := server.peerConn.SetRemoteDescription(descr)
+	if err != nil {
+		return "", err
+	}
+	answer, err := server.peerConn.CreateAnswer(nil)
+	if err != nil {
+		return "", err
+	}
+	err = server.peerConn.SetLocalDescription(answer)
+	if err != nil {
+		return "", err
+	}
+	return answer.SDP, nil
 }

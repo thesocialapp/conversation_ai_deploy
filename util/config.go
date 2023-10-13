@@ -9,6 +9,8 @@ type Config struct {
 	SocketIOPingTimeout  int    `mapstructure:"SOCKET_IO_PING_TIMEOUT"`
 	SocketIOPingInterval int    `mapstructure:"SOCKET_IO_PING_INTERVAL"`
 	OpenAPIKey           string `mapstructure:"OPEN_API_KEY"`
+	RTCUsername          string `mapstructure:"RTC_USERNAME"`
+	RTCPassword          string `mapstructure:"RTC_PASSWORD"`
 }
 
 // Load the app.env file and unmarshal it into the Config struct
