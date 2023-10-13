@@ -1,6 +1,7 @@
 package api
 
 import (
+	"conversational_ai/rtc"
 	"conversational_ai/util"
 	"fmt"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"github.com/go-redis/redis"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
-	"github.com/pion/webrtc/v3"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 )
@@ -20,28 +20,21 @@ type Server struct {
 	router   *gin.Engine
 	io       *socketio.Server
 	client   *openai.Client
-	peerConn *webrtc.PeerConnection
+	peerConn *rtc.PeerConnection
 }
 
 func NewServer(config util.Config) (*Server, error) {
 	client := openai.NewClient(config.OpenAPIKey)
-	rtcConfig := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
-			},
-		},
-	}
-
-	peerConnection, err := webrtc.NewPeerConnection(rtcConfig)
+	pion := rtc.NewPionRTCServices(config.StunServerAddress)
+	pc, err := pion.NewPeerConnection()
 	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create peer connection")
+		return nil, err
 	}
 
 	server := &Server{
 		config:   config,
 		client:   client,
-		peerConn: peerConnection,
+		peerConn: pc,
 	}
 
 	rdb := redis.NewClient(&redis.Options{

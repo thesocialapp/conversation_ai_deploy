@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	socketio "github.com/googollee/go-socket.io"
-	"github.com/pion/webrtc/v3"
 	"github.com/rs/zerolog/log"
 )
 
@@ -24,7 +23,7 @@ func (server *Server) audioDetails(io socketio.Conn, data map[string]interface{}
 }
 
 func (server *Server) rtcOffer(io socketio.Conn, data map[string]interface{}) {
-	sdp, err := server.parseRTCOffer(data["offer"].(string))
+	sdp, err := server.peerConn.ProcessOffer(data["offer"].(string))
 	if err != nil {
 		log.Error().Msgf("Client rtcOffer error: %s", err.Error())
 		io.Emit("rtcResponse", "error")
@@ -69,25 +68,4 @@ func (server *Server) streamAudio(io socketio.Conn, data map[string]interface{})
 
 func (server *Server) onError(io socketio.Conn, err error) {
 	log.Error().Msgf("Client error: %s", err.Error())
-}
-
-func (server *Server) parseRTCOffer(offer string) (string, error) {
-	descr := webrtc.SessionDescription{
-		Type: webrtc.SDPTypeOffer,
-		SDP:  offer,
-	}
-	/// Set peer connection remote description
-	err := server.peerConn.SetRemoteDescription(descr)
-	if err != nil {
-		return "", err
-	}
-	answer, err := server.peerConn.CreateAnswer(nil)
-	if err != nil {
-		return "", err
-	}
-	err = server.peerConn.SetLocalDescription(answer)
-	if err != nil {
-		return "", err
-	}
-	return answer.SDP, nil
 }
