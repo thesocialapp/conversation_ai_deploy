@@ -1,4 +1,4 @@
-package api
+package rtc
 
 import (
 	"fmt"
@@ -14,12 +14,45 @@ type PeerConnection struct {
 	peerConn *webrtc.PeerConnection
 }
 
-// Close connection
+type PionRTCServices struct {
+	stunServer string
+}
+
+func NewPionRTCServices(stunServer string) *PionRTCServices {
+	return &PionRTCServices{
+		stunServer: stunServer,
+	}
+}
+
+// Close close connection the underlying peer connection
 func (pc *PeerConnection) Close() error {
 	return pc.peerConn.Close()
 }
 
-func (pc *PeerConnection) handleAudioTrack(track *webrtc.TrackRemote, dc *webrtc.DataChannel) error {
+// ProcessOffer handles the offer from the client
+// and returns the SDP answer to the client to establish the connection
+func (p *PeerConnection) ProcessOffer(offer string) (string, error) {
+	err := p.peerConn.SetRemoteDescription(webrtc.SessionDescription{
+		SDP:  offer,
+		Type: webrtc.SDPTypeOffer,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	answer, err := p.peerConn.CreateAnswer(nil)
+	if err != nil {
+		return "", err
+	}
+
+	err = p.peerConn.SetLocalDescription(answer)
+	if err != nil {
+		return "", err
+	}
+	return answer.SDP, nil
+}
+
+func (pI *PionRTCServices) handleAudioTrack(track *webrtc.TrackRemote, dc *webrtc.DataChannel) error {
 	decoder, err := newDecoder()
 	if err != nil {
 		return err
@@ -65,19 +98,19 @@ func (pc *PeerConnection) handleAudioTrack(track *webrtc.TrackRemote, dc *webrtc
 			log.Info().Msgf("error reading track: %s %s", track.ID(), err.Error())
 			return err
 		}
-
 	}
 }
 
-func (pi *PeerConnection) NewPeerConnection() (*PeerConnection, error) {
+func (pi *PionRTCServices) NewPeerConnection() (*PeerConnection, error) {
 	pcConfig := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
 			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
+				URLs: []string{pi.stunServer},
 			},
 		},
 		SDPSemantics: webrtc.SDPSemanticsUnifiedPlanWithFallback,
 	}
+
 	pc, err := webrtc.NewPeerConnection(pcConfig)
 	if err != nil {
 		return nil, err

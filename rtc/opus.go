@@ -1,4 +1,4 @@
-package api
+package rtc
 
 import "github.com/hraban/opus"
 
