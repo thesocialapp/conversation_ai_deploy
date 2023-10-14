@@ -22,17 +22,6 @@ func (server *Server) audioDetails(io socketio.Conn, data map[string]interface{}
 	io.Emit("audioResponse", "ok ")
 }
 
-func (server *Server) rtcOffer(io socketio.Conn, data map[string]interface{}) {
-	sdp, err := server.peerConn.ProcessOffer(data["offer"].(string))
-	if err != nil {
-		log.Error().Msgf("Client rtcOffer error: %s", err.Error())
-		io.Emit("rtcResponse", "error")
-		return
-	}
-	io.Emit("rtcResponse", sdp)
-	io.Emit("rtcResponse", "ok ")
-}
-
 func (server *Server) streamAudio(io socketio.Conn, data map[string]interface{}) {
 	/// We use this to append the file chunks to a buffer
 	var fileBuffer bytes.Buffer

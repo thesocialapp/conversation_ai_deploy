@@ -1,7 +1,6 @@
 package api
 
 import (
-	"conversational_ai/rtc"
 	"conversational_ai/util"
 	"fmt"
 	"net/http"
@@ -16,25 +15,18 @@ import (
 )
 
 type Server struct {
-	config   util.Config
-	router   *gin.Engine
-	io       *socketio.Server
-	client   *openai.Client
-	peerConn *rtc.PeerConnection
+	config util.Config
+	router *gin.Engine
+	io     *socketio.Server
+	client *openai.Client
 }
 
 func NewServer(config util.Config) (*Server, error) {
 	client := openai.NewClient(config.OpenAPIKey)
-	pion := rtc.NewPionRTCServices(config.StunServerAddress)
-	pc, err := pion.NewPeerConnection()
-	if err != nil {
-		return nil, err
-	}
 
 	server := &Server{
-		config:   config,
-		client:   client,
-		peerConn: pc,
+		config: config,
+		client: client,
 	}
 
 	rdb := redis.NewClient(&redis.Options{
@@ -43,7 +35,7 @@ func NewServer(config util.Config) (*Server, error) {
 		DB:       0,  // use default DB
 	})
 
-	_, err = rdb.Ping().Result()
+	_, err := rdb.Ping().Result()
 
 	if err != nil {
 		log.Error().Err(err).Msgf("cannot connect to redis %s", err.Error())
@@ -106,7 +98,6 @@ func (s *Server) setupSocketIO() {
 
 	/// Set up upload audio event
 	sock.OnEvent("/", "stream-audio", s.streamAudio)
-	sock.OnEvent("/", "rtc-offer", s.rtcOffer)
 	sock.OnEvent("/", "audio-details", s.audioDetails)
 
 	// Handle socket.io errors
@@ -128,8 +119,4 @@ func (s *Server) StartServer() error {
 
 	defer s.io.Close()
 	return s.router.Run(port)
-}
-
-func (s *Server) closeRTC() error {
-	return s.peerConn.Close()
 }
