@@ -1,6 +1,6 @@
 package rtc
 
-import "github.com/hraban/opus"
+import "gopkg.in/hraban/opus.v2"
 
 type opusDecoder struct {
 	opusd   *opus.Decoder
