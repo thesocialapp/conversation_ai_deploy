@@ -1,0 +1,45 @@
+version: '3.9'
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - cai-net
+
+  cai_py:
+    build:
+      context: .
+      dockerfile: Dockerfile_python
+    container_name: cai_py
+    depends_on:
+      - redis
+    ports:
+      - "4401:4401"
+    command: ["python", "main.py"]
+    networks:
+      - cai-net
+    restart: always
+
+  cai_go:
+    build:
+      context: .
+      dockerfile: Dockerfile_go
+    container_name: cai_go
+    depends_on:
+      - redis
+      - cai_py
+    ports:
+      - "4400:4400"
+    command: ["/app/main"]
+    networks:
+      - cai-net
+
+networks:
+  cai-net:
+    name: cai-net
+    driver: bridge
