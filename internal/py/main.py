@@ -12,7 +12,8 @@ def health_check():
 def message_handler(message):
     print("Message received: " + str(message))
 
-
+def startApp():
+    app.run(host='0.0.0.0', port=serverPort, debug=True, use_reloader=False)
 
 if __name__ == "__main__":
     redisPort = config('REDIS_PORT', default=6379, cast=int)
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         pubsub.psubscribe('*')
         
         # Run Flask on a separate thread
-        flask_thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=serverPort, debug=True, use_reloader=False))
+        flask_thread = threading.Thread(target=startApp)
         flask_thread.start()
         
         for data in pubsub.listen():
