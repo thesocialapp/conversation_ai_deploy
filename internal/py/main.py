@@ -1,26 +1,22 @@
 import redis
 import threading
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
 from decouple import config
 
 app = Flask(__name__)
+pubsub_initialized = threading.Event()
 
-@app.route('/healthy')
-def health_check():
-    return jsonify(status='OK')
+redisPort = config('REDIS_PORT', default=6379, cast=int)
+serverPort = config('PY_PORT', default=4401, cast=int)
+
+r = redis.StrictRedis(host=config('REDIS_HOST', default='redis'), port=redisPort, db=0)
 
 def message_handler(message):
+    app.logger.info(f"Received message: {message}")
     print("Message received: " + str(message))
+    # yield message
 
-def startApp():
-    app.run(host='0.0.0.0', port=serverPort, debug=True, use_reloader=False)
-
-if __name__ == "__main__":
-    redisPort = config('REDIS_PORT', default=6379, cast=int)
-    serverPort = config('PY_PORT', default=4401, cast=int)
-
-    r = redis.Redis(host=config('REDIS_HOST', default='redis'), port=redisPort, db=0)
-    #  Test connection first
+def event_stream():
     try:
         response = r.ping()
         if response:
@@ -29,18 +25,36 @@ if __name__ == "__main__":
             print("Redis server is not responding.")
 
         pubsub = r.pubsub()
-        pubsub.psubscribe('*')
-        
-        # Run Flask on a separate thread
-        flask_thread = threading.Thread(target=startApp)
-        flask_thread.start()
-        
+        pubsub.subscribe('audio')
+        pubsub_initialized.set()
         for data in pubsub.listen():
-            if data['type'] == 'audio':
+            print(f'We are listening {data}')
+            if data['type'] == 'message':
                 message_handler(data)
-        
     except redis.ConnectionError as e:
         print(f"Failed to connect to Redis {e}")
+    
 
-   
-    # pubsub.subscribe(**{'audio': message_handler})
+
+@app.route('/healthy', methods=['GET'])
+def health_check():
+    return jsonify(status='OK')
+
+@app.route('/stream')
+def stream():
+    return Response(event_stream, mimetype='text/event-stream')
+
+
+def start_app():
+    app.run(host='0.0.0.0', port=serverPort, debug=True, use_reloader=False)
+    # flask_initialized.set()
+
+if __name__ == "__main__":
+    pubsub_thread = threading.Thread(target=event_stream)
+    pubsub_thread.daemon = True # Break app if it breaks
+    pubsub_thread.start()
+
+    pubsub_initialized.wait()
+
+    # Start flask app
+    start_app()
