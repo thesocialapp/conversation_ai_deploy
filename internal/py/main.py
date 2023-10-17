@@ -21,20 +21,19 @@ def event_stream():
         response = r.ping()
         if response:
             print("Redis server is up and responding.")
+            pubsub = r.pubsub()
+            pubsub.subscribe('audio')
+            pubsub_initialized.set()
+            for data in pubsub.listen():
+                print(f'We are listening {data}')
+                if data['type'] == 'message':
+                    message_handler(data)
         else:
-            print("Redis server is not responding.")
+            app.logger.error('Unable to connect to Redis successfully')
 
-        pubsub = r.pubsub()
-        pubsub.subscribe('audio')
-        pubsub_initialized.set()
-        for data in pubsub.listen():
-            print(f'We are listening {data}')
-            if data['type'] == 'message':
-                message_handler(data)
+        
     except redis.ConnectionError as e:
         print(f"Failed to connect to Redis {e}")
-    
-
 
 @app.route('/healthy', methods=['GET'])
 def health_check():
