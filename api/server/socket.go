@@ -1,10 +1,12 @@
 package api
 
 import (
-	"bytes"
+	"context"
+	"encoding/base64"
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/rs/zerolog/log"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 func (server *Server) onConnect(conn socketio.Conn) error {
@@ -17,42 +19,57 @@ func (server *Server) onDisconnect(io socketio.Conn, reason string) {
 	log.Error().Msgf("Client disconnected: %s", reason)
 }
 
-func (server *Server) audioDetails(io socketio.Conn, data map[string]interface{}) {
-	log.Info().Msgf("Client audio details: %s", data["file"])
+func (server *Server) audioDetails(io socketio.Conn, data string) {
+	log.Info().Msgf("Client audio details: %s", data)
 	io.Emit("audioResponse", "ok ")
 }
 
-func (server *Server) streamAudio(io socketio.Conn, data map[string]interface{}) {
-	/// We use this to append the file chunks to a buffer
-	var fileBuffer bytes.Buffer
+type AudioData struct {
+	FileName string `msgpack:"name"`
+	Audio    string `msgpack:"audio"`
+}
 
-	// Process the file chunk data
-	log.Info().Msgf("Client file chunk: %s", data["chunk"])
-	chunkData, ok := data["chunk"].([]byte)
-	log.Info().Msgf("Client file chunk: %s", len(chunkData))
-
-	if !ok {
-		io.Emit("audioResponse", "fileparse error")
-		return
-	}
-
-	fileName, ok := data["blob-name"].(string)
-	if !ok {
-		io.Emit("audioResponse", "fileName error")
-		return
-	}
-
-	_, err := fileBuffer.Write(chunkData)
+func (server *Server) streamAudio(io socketio.Conn, data string) {
+	log.Info().Msg("Client audio stream")
+	// Convert data string to buffer base64
+	parsedBytes, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
-		// Tell the user the file is too large
-		if err == bytes.ErrTooLarge {
-			io.Emit("audioResponse", "file too large")
-			return
-		}
-		io.Emit("audioResponse", "fileBuffer error")
+		log.Error().Msgf("Error decoding base64: %s", err.Error())
+		io.Emit("transcriptionResult", "error decoding"+err.Error())
 		return
 	}
-	io.Emit("transcriptionResult", "ok "+fileName)
+
+	var audioData AudioData
+	// // Parse the message using message pack
+	if err := msgpack.Unmarshal(parsedBytes, &audioData); err != nil {
+		log.Error().Msgf("Error parsing message pack: %s", err.Error())
+		io.Emit("transcriptionResult", "error buffer "+err.Error())
+		return
+	}
+
+	// parse audio data to file using string base64
+	// audioData.Audio
+	byteData, err := base64.StdEncoding.DecodeString(audioData.Audio)
+	if err != nil {
+		log.Error().Msgf("Error decoding base64: %s", err.Error())
+		io.Emit("transcriptionResult", "error audio decoding"+err.Error())
+		return
+	}
+
+	// Save the audio file
+	fileName := audioData.FileName + ".ogg"
+	log.Info().Msgf("Saving audio file: %s", fileName)
+	log.Info().Msgf("Audio data: %s", byteData)
+
+	r, err := server.rClient.Publish(context.Background(), "audio", "Awesome message sent").Result()
+	if err != nil {
+		log.Error().Msgf("Error publishing message: %s", err.Error())
+		return
+	}
+	log.Info().Msgf("Client audio stream: %v", r)
+	/// Try to save the audio file
+
+	io.Emit("transcriptionResult", "ok "+audioData.FileName)
 }
 
 func (server *Server) onError(io socketio.Conn, err error) {

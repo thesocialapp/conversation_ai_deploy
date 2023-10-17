@@ -1,13 +1,14 @@
 package api
 
 import (
+	"context"
 	"conversational_ai/util"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
 	"github.com/rs/zerolog/log"
@@ -15,10 +16,11 @@ import (
 )
 
 type Server struct {
-	config util.Config
-	router *gin.Engine
-	io     *socketio.Server
-	client *openai.Client
+	config  util.Config
+	router  *gin.Engine
+	io      *socketio.Server
+	client  *openai.Client
+	rClient *redis.Client
 }
 
 func NewServer(config util.Config) (*Server, error) {
@@ -35,11 +37,14 @@ func NewServer(config util.Config) (*Server, error) {
 		DB:       0,  // use default DB
 	})
 
-	_, err := rdb.Ping().Result()
+	_, err := rdb.Ping(context.Background()).Result()
 
 	if err != nil {
 		log.Error().Err(err).Msgf("cannot connect to redis %s", err.Error())
 	}
+
+	/// Set up redis client
+	server.rClient = rdb
 
 	// Init Socket IO
 	server.setupSocketIO()
@@ -67,6 +72,10 @@ func (s *Server) setUpRouter() {
 	ioRoutes := router.Group("/io").Use(allowOrigin("*"))
 	ioRoutes.GET("/", gin.WrapH(s.io))
 	ioRoutes.POST("/", gin.WrapH(s.io))
+
+	// Rest routes
+	rest := router.Group("/v1")
+	rest.GET("/audio", s.UploadAudioFile)
 
 	s.router = router
 }

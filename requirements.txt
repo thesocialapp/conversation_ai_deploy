@@ -1,0 +1,6 @@
+# Socket io Version 2
+# https://socket.io/docs/v2
+redis
+pydub
+flask
+python-decouple
