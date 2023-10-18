@@ -1,6 +1,20 @@
 # Socket io Version 2
 # https://socket.io/docs/v2
+# In memory DB
 redis
+
+# Audio libs
 pydub
+
+# For API request, needed more for checking health status and 
+# future changes
 flask
+
+# For reading .env files
 python-decouple
+
+# For transcribing audio data
+openai
+
+# Generated audio
+elevenlabs==0.2.24

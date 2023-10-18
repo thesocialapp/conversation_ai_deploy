@@ -16,8 +16,8 @@ type Config struct {
 
 // Load the app.env file and unmarshal it into the Config struct
 func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)
-	viper.SetConfigName("app")
+	viper.SetConfigFile(path)
+	// viper.SetConfigName("app")
 	viper.SetConfigType("env")
 
 	viper.AutomaticEnv()

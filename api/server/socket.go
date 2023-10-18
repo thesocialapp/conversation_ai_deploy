@@ -47,21 +47,11 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 		return
 	}
 
-	// parse audio data to file using string base64
-	// audioData.Audio
-	byteData, err := base64.StdEncoding.DecodeString(audioData.Audio)
-	if err != nil {
-		log.Error().Msgf("Error decoding base64: %s", err.Error())
-		io.Emit("transcriptionResult", "error audio decoding"+err.Error())
-		return
-	}
-
 	// Save the audio file
 	fileName := audioData.FileName + ".ogg"
 	log.Info().Msgf("Saving audio file: %s", fileName)
-	log.Info().Msgf("Audio data: %s", byteData)
 
-	r, err := server.rClient.Publish(context.Background(), "audio", "Awesome message sent").Result()
+	r, err := server.rClient.Publish(context.Background(), "audio", audioData.Audio).Result()
 	if err != nil {
 		log.Error().Msgf("Error publishing message: %s", err.Error())
 		return
