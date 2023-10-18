@@ -2,38 +2,20 @@ import redis
 import threading
 from flask import Flask, jsonify, Response
 from decouple import config
+import cai_events
 
 app = Flask(__name__)
 pubsub_initialized = threading.Event()
 
 redisPort = config('REDIS_PORT', default=6379, cast=int)
 serverPort = config('PY_PORT', default=4401, cast=int)
+openAIKey = config('OPENAI_API_KEY')
+host = config('REDIS_HOST', default='redis')
 
-r = redis.StrictRedis(host=config('REDIS_HOST', default='redis'), port=redisPort, db=0)
+r = redis.StrictRedis(host=host, port=redisPort, db=0)
 
-def message_handler(message):
-    app.logger.info(f"Received message: {message}")
-    print("Message received: " + str(message))
-    # yield message
-
-def event_stream():
-    try:
-        response = r.ping()
-        if response:
-            print("Redis server is up and responding.")
-            pubsub = r.pubsub()
-            pubsub.subscribe('audio')
-            pubsub_initialized.set()
-            for data in pubsub.listen():
-                print(f'We are listening {data}')
-                if data['type'] == 'message':
-                    message_handler(data)
-        else:
-            app.logger.error('Unable to connect to Redis successfully')
-
-        
-    except redis.ConnectionError as e:
-        print(f"Failed to connect to Redis {e}")
+def start_rpubsub():
+    cai_events.event_stream(app, r, pubsub_initialized, openAIKey)
 
 @app.route('/healthy', methods=['GET'])
 def health_check():
@@ -41,15 +23,14 @@ def health_check():
 
 @app.route('/stream')
 def stream():
-    return Response(event_stream, mimetype='text/event-stream')
+    return Response(start_rpubsub, mimetype='text/event-stream')
 
 
 def start_app():
     app.run(host='0.0.0.0', port=serverPort, debug=True, use_reloader=False)
-    # flask_initialized.set()
 
 if __name__ == "__main__":
-    pubsub_thread = threading.Thread(target=event_stream)
+    pubsub_thread = threading.Thread(target=start_rpubsub)
     pubsub_thread.daemon = True # Break app if it breaks
     pubsub_thread.start()
 
