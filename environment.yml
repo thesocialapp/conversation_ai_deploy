@@ -8,6 +8,7 @@ channels:
 
 dependencies:
   - python=3.8
+  - pip
   - ffmpeg
   - pip:
     - -r requirements.txt

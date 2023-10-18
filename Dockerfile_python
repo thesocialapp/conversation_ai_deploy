@@ -5,12 +5,14 @@ WORKDIR /app
 
 
 # Copy only the requirements file to ensure caching
-COPY requirements.txt .
+COPY requirements.txt /tmp/requirements.txt
 COPY environment.yml /tmp/environment.yml
+
 #  Copy the app.env
 COPY .env .
 
 RUN conda env create -f /tmp/environment.yml
+
 # Activate the Conda environment and set the PATH
 SHELL ["conda", "run", "-n", "pyenv", "/bin/bash", "-c"]
 ENV PATH /opt/conda/envs/pyenv/bin:$PATH
