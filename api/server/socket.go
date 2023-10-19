@@ -30,7 +30,6 @@ type AudioData struct {
 }
 
 func (server *Server) streamAudio(io socketio.Conn, data string) {
-	log.Info().Msg("Client audio stream")
 	// Convert data string to buffer base64
 	parsedBytes, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
@@ -48,7 +47,7 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	}
 
 	// Save the audio file
-	fileName := audioData.FileName + ".ogg"
+	fileName := audioData.FileName + ".webm"
 	log.Info().Msgf("Saving audio file: %s", fileName)
 
 	r, err := server.rClient.Publish(context.Background(), "audio", audioData.Audio).Result()

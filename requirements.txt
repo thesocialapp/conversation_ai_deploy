@@ -2,9 +2,6 @@
 # https://socket.io/docs/v2
 redis
 
-# Audio libs
-pydub
-
 # For API request, needed more for checking health status and 
 # future changes
 flask
@@ -13,7 +10,7 @@ flask
 python-decouple
 
 # For transcribing audio data
-openai
+openai==0.27.0
 
 # Generated audio
 elevenlabs==0.2.24
