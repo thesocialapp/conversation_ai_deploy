@@ -1,27 +1,22 @@
-# Stage 1: Build dependencies using conda installer
-FROM continuumio/miniconda3:latest as builder
-# Create a Conda environment and install packages
+# Stage 1: Build dependencies
+FROM python:3.8-slim-buster as builder
+
 WORKDIR /app
 
-
 # Copy only the requirements file to ensure caching
-COPY requirements.txt /tmp/requirements.txt
-COPY environment.yml /tmp/environment.yml
+COPY requirements.txt .
 
 #  Copy the app.env
 COPY .env .
 
-RUN conda env create -f /tmp/environment.yml
-
-# Activate the Conda environment and set the PATH
-SHELL ["conda", "run", "-n", "pyenv", "/bin/bash", "-c"]
-ENV PATH /opt/conda/envs/pyenv/bin:$PATH
-
+# Install the dependencies from requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Create the final image
 FROM python:3.8-slim
 
 # Copy installed dependencies from the builder stage
+COPY --from=builder /usr/local/lib/python3.8/site-packages /usr/local/lib/python3.8/site-packages
 COPY --from=builder /app /app
 
 # Set the working directory

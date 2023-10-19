@@ -2,7 +2,6 @@
 
 from flask import Flask
 import redis
-import audio
 from threading import Event
 from open_ai import OpenAI
 
@@ -10,11 +9,11 @@ from open_ai import OpenAI
 def message_handler(app: Flask, message: str, apiKey: str):
     app.logger.info(f"Received message: {message}")
     print("Message received: " + str(message))
-    inmem = audio.ogg_to_mp4(message)
+    
     
     open_ai = OpenAI(apiKey=apiKey)
     # Transcribe the audio we got
-    tr = open_ai.transcribe_audio(inmem)
+    tr = open_ai.transcribe_audio(message)
     app.logger.info(f"We were able to transcribe the data {tr}")
 
 

@@ -1,6 +1,5 @@
 # Socket io Version 2
 # https://socket.io/docs/v2
-# In memory DB
 redis
 
 # Audio libs
