@@ -23,7 +23,8 @@ func (server *Server) onConnect(conn socketio.Conn) error {
 		for msg := range subChan {
 			// Convert the payload from base64 to bytes
 			// and send it to the client
-			conn.Emit("audio_response", msg.Payload)
+			audioByte := base64.StdEncoding.EncodeToString([]byte(msg.Payload))
+			conn.Emit("audio_response", audioByte)
 		}
 	}()
 
@@ -58,7 +59,6 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	if err := msgpack.Unmarshal(parsedBytes, &audioData); err != nil {
 		log.Error().Msgf("Error parsing message pack: %s", err.Error())
 		io.Emit("transcriptionResult", "error buffer "+err.Error())
-
 	}
 
 	// Save the audio file
@@ -69,8 +69,7 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	audioBytes, err := base64.StdEncoding.DecodeString(audioData.Audio)
 	if err != nil {
 		log.Error().Msgf("Error decoding base64: %s", err.Error())
-		io.Emit("transcriptionResult", "error decoding"+err.Error())
-
+		io.Emit("transcriptionResult", "error decoding: "+err.Error())
 	}
 
 	/// Create the temp file from the audio bytes and io using os
