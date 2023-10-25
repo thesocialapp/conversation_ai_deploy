@@ -2,13 +2,22 @@
 # We set the working directory to /app and copy all files inside
 # We build the binary and name it main
 FROM golang:1.19-alpine3.16 AS builder
-
+LABEL maintainer="Brian Mwangi"
 WORKDIR /app
+
 # Copy all files from the current directory to the working directory
 # including the go.mod and go.sum files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
 COPY . .
+
+ENV GOCACHE=/root/.cache/go-build
+
 # We build the binary from the backend folder
-RUN go build -o main main.go
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main main.go
 
 FROM alpine:3.16
 WORKDIR /app

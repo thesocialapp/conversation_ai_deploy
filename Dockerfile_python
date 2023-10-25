@@ -1,6 +1,7 @@
 # Stage 1: Build dependencies
-FROM python:3.8-slim-buster as builder
 
+FROM python:3.8-slim-buster as builder
+LABEL maintainer="Brian Mwangi"
 WORKDIR /app
 
 # Copy only the requirements file to ensure caching
