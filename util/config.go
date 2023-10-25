@@ -8,7 +8,7 @@ type Config struct {
 	RedisPrefix          string `mapstructure:"REDIS_PREFIX"`
 	SocketIOPingTimeout  int    `mapstructure:"SOCKET_IO_PING_TIMEOUT"`
 	SocketIOPingInterval int    `mapstructure:"SOCKET_IO_PING_INTERVAL"`
-	OpenAPIKey           string `mapstructure:"OPEN_API_KEY"`
+	OpenAPIKey           string `mapstructure:"OPENAI_API_KEY"`
 	RTCUsername          string `mapstructure:"RTC_USERNAME"`
 	RTCPassword          string `mapstructure:"RTC_PASSWORD"`
 	StunServerAddress    string `mapstructure:"STUN_SERVER_ADDRESS"`

@@ -3,31 +3,26 @@
 import base64
 import io
 from flask import Flask
+from processing import synthesize_voice
 import redis
 from threading import Event
-from open_ai import OpenAI
 
 
-def message_handler(app: Flask, message: str, apiKey: str):
-    # print("Message received: " + str(message['data']))
-    print(f"api key {apiKey}\n")
-    audio_str = message['data']
+def message_handler(app: Flask, message: str, r: redis.StrictRedis):
     # Since the audio is coming as base64 string of bytes, we need to decode it
     # to a bytes object under base64 encoding
     try:
-        decoded_audio = base64.b64decode(audio_str)
-        bytes_audio = io.BytesIO(decoded_audio)
-        open_ai = OpenAI(apiKey=apiKey)
-        # 
-        # Transcribe the audio we got
-        tr = open_ai.transcribe_audio(bytes_audio)
-        print(f"Transcribed audio {tr}")
+        app.logger.info(f"Message received: {message['data'].decode('utf-8')}")
+        # Convert message to bytes
+        audioData = message["data"].decode('utf-8')
+        audio = synthesize_voice(audioData)
+        # Convert audio to base64 string
+        audioStr = base64.b64encode(audio).decode('utf-8')
+        r.publish('audio_response', audioStr)
     except Exception as e:
-        print(f"Error {e}")
-    
-    app.logger.info(f"We were able to transcribe the data {tr}")
+        app.logger.error(f"Error {e}")
 
-def event_stream(app: Flask, r: redis.StrictRedis, pi: Event, openApiKey: str):
+def event_stream(app: Flask, r: redis.StrictRedis, pi: Event):
     try:
         # Ensure we test that Redis can handle a PING PONG and 
         #  continue once it does
@@ -45,7 +40,7 @@ def event_stream(app: Flask, r: redis.StrictRedis, pi: Event, openApiKey: str):
             # Listen for all data coming in
             for data in pubsub.listen():
                 if data['type'] == 'message':
-                    message_handler(app, data, openApiKey)
+                    message_handler(app, data, r)
         else:
             app.logger.error('Unable to connect to Redis successfully')
     except redis.ConnectionError as e:
