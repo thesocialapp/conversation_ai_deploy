@@ -17,8 +17,8 @@ def message_handler(app: Flask, message: str, r: redis.StrictRedis):
         audioData = message["data"].decode('utf-8')
         audio = synthesize_voice(audioData)
         # Convert audio to base64 string
-        audioStr = base64.b64encode(audio).decode('utf-8')
-        r.publish('audio_response', audioStr)
+        
+        r.publish('audio_response', audio)
     except Exception as e:
         app.logger.error(f"Error {e}")
 
