@@ -3,7 +3,7 @@ import threading
 from elevenlabs import set_api_key
 from flask import Flask, jsonify, Response
 from decouple import config
-import cai_events
+import src.events.cai_events as cai_events
 
 app = Flask(__name__)
 pubsub_initialized = threading.Event()

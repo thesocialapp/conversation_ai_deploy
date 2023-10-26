@@ -1,9 +1,5 @@
-
-
-import base64
-import io
 from flask import Flask
-from processing import synthesize_voice
+from internal.py.src.ai.processing import synthesize_voice
 import redis
 from threading import Event
 
