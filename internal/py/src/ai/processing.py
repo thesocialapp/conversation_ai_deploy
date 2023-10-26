@@ -1,5 +1,5 @@
 from elevenlabs import generate
-from ai.llm import llm
+import llm
 from langchain.schema import HumanMessage
 from decouple import config
 
@@ -7,7 +7,7 @@ from decouple import config
 def synthesize_voice(text: str):
     """Convert transcription to audio"""
     try:
-        prediction = synthesize_response(llm=llm, text=text)
+        prediction = _synthesize_response(llm=llm, text=text)
         audio = generate(
             text=prediction,
             voice="Bella",
@@ -19,7 +19,7 @@ def synthesize_voice(text: str):
         raise e
     
 
-def synthesize_response(llm, text: str) -> str:
+def _synthesize_response(llm, text: str) -> str:
     try:
         messages = [HumanMessage(text=text)]
         answer = llm.predict_messages(messages=messages)

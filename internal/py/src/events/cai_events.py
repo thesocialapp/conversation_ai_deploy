@@ -1,10 +1,10 @@
 from flask import Flask
-from internal.py.src.ai.processing import synthesize_voice
+from src import synthesize_voice
 import redis
 from threading import Event
 
 
-def message_handler(app: Flask, message: str, r: redis.StrictRedis):
+def _message_handler(app: Flask, message: str, r: redis.StrictRedis):
     # Since the audio is coming as base64 string of bytes, we need to decode it
     # to a bytes object under base64 encoding
     try:
@@ -36,7 +36,7 @@ def event_stream(app: Flask, r: redis.StrictRedis, pi: Event):
             # Listen for all data coming in
             for data in pubsub.listen():
                 if data['type'] == 'message':
-                    message_handler(app, data, r)
+                    _message_handler(app, data, r)
         else:
             app.logger.error('Unable to connect to Redis successfully')
     except redis.ConnectionError as e:
