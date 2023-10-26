@@ -9,7 +9,7 @@ llm = OpenAI(openai_api_key=config("OPENAI_API_KEY"))
 def synthesize_voice(text: str):
     """Convert transcription to audio"""
     try:
-        prediction = _synthesize_response(llm=lang_chain.llm, text=text)
+        prediction = _synthesize_response(llm=llm, text=text)
         audio = generate(
             text=prediction,
             voice="Bella",

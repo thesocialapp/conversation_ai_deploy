@@ -5,7 +5,7 @@ LABEL maintainer="Brian Mwangi"
 WORKDIR /app
 
 # Copy only the requirements file to ensure caching
-COPY requirements.txt .
+COPY py/requirements.txt .
 
 #  Copy the app.env
 COPY .env .
@@ -24,7 +24,8 @@ COPY --from=builder /app /app
 WORKDIR /app
 
 # Copy the Python script from the internal folder
-COPY internal/py/* /app/
+COPY py/src /app/
+COPY py/* /app/
 
 # Expose the port if needed
 EXPOSE 4041

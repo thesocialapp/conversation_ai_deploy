@@ -1,9 +1,11 @@
-package api
+package server
 
 import (
 	"context"
-	"conversational_ai/util"
 	"fmt"
+
+	util "github.com/thesocialapp/conversation-ai/go/util"
+
 	"net/http"
 	"time"
 
