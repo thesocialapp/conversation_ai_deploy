@@ -1,5 +1,5 @@
 from flask import Flask
-from src import synthesize_voice
+from ai import processing
 import redis
 from threading import Event
 
@@ -11,7 +11,7 @@ def _message_handler(app: Flask, message: str, r: redis.StrictRedis):
         app.logger.info(f"Message received: {message['data'].decode('utf-8')}")
         # Convert message to bytes
         audioData = message["data"].decode('utf-8')
-        audio = synthesize_voice(audioData)
+        audio = processing.synthesize_voice(audioData)
         # Convert audio to base64 string
         
         r.publish('audio_response', audio)

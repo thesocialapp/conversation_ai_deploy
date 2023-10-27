@@ -2,8 +2,9 @@ import redis
 import threading
 from elevenlabs import set_api_key
 from flask import Flask, jsonify, Response
+from events import cai_events
 from decouple import config
-from src import event_stream
+
 app = Flask(__name__)
 pubsub_initialized = threading.Event()
 
@@ -16,7 +17,7 @@ set_api_key(elevenlabsKey)
 r = redis.StrictRedis(host=host, port=redisPort, db=0)
 
 def start_rpubsub():
-    event_stream(app, r, pubsub_initialized)
+    cai_events.event_stream(app, r, pubsub_initialized)
 
 @app.route('/healthy', methods=['GET'])
 def health_check():

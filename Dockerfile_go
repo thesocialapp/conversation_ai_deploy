@@ -7,20 +7,21 @@ WORKDIR /app
 
 # Copy all files from the current directory to the working directory
 # including the go.mod and go.sum files
-COPY go.mod go.sum ./
+COPY go.mod go.sum /app/
 
-# Download dependencies
 RUN go mod download
 
 COPY . .
-
 ENV GOCACHE=/root/.cache/go-build
 
-# We build the binary from the backend folder
-RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main main.go
+RUN ls -la /app
 
-FROM alpine:3.16
+# We build the binary from the go/main.go file
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./go/main.go
+
+FROM alpine:3.16 
 WORKDIR /app
+
 COPY --from=builder /app/main .
 COPY .env .
 

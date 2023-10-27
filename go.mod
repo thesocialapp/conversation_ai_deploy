@@ -1,4 +1,4 @@
-module conversational_ai
+module github.com/thesocialapp/conversation-ai
 
 go 1.19
 

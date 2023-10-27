@@ -1,8 +1,10 @@
 from elevenlabs import generate
-import llm
 from langchain.schema import HumanMessage
 from decouple import config
+from langchain.llms import OpenAI
+from decouple import config
 
+llm = OpenAI(openai_api_key=config("OPENAI_API_KEY"))
 
 def synthesize_voice(text: str):
     """Convert transcription to audio"""
@@ -21,8 +23,8 @@ def synthesize_voice(text: str):
 
 def _synthesize_response(llm, text: str) -> str:
     try:
-        messages = [HumanMessage(text=text)]
-        answer = llm.predict_messages(messages=messages)
+    
+        answer = llm.predict(text)
         print("Synthesizing response...")
         return answer
     except Exception as e:
