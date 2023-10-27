@@ -58,6 +58,11 @@ func NewServer(config util.Config) (*Server, error) {
 }
 
 func (s *Server) setUpRouter() {
+	/// Change gin mode to production if in production mode
+	if s.config.Environment == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	router := gin.New()
 
 	// Incase of a backend crush it will return a 500 error

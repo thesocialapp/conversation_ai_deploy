@@ -2,9 +2,9 @@ from elevenlabs import generate
 from langchain.schema import HumanMessage
 from decouple import config
 from langchain.llms import OpenAI
-from decouple import config
+import configs
 
-llm = OpenAI(openai_api_key=config("OPENAI_API_KEY"))
+llm = OpenAI(openai_api_key=configs.openaiKey)
 
 def synthesize_voice(text: str):
     """Convert transcription to audio"""

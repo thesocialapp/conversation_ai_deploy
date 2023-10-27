@@ -1,9 +1,12 @@
 package main
 
 import (
+	"os"
+
 	server "github.com/thesocialapp/conversation-ai/go/server"
 	util "github.com/thesocialapp/conversation-ai/go/util"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -12,6 +15,10 @@ func main() {
 	config, err := util.LoadConfig(".env")
 	if err != nil {
 		log.Fatal().Msgf("cannot load config %s", err.Error())
+	}
+
+	if config.Environment == "development" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	log.Info().Msgf("Starting server at %v", config.HttpServerAddress)

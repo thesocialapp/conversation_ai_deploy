@@ -12,6 +12,7 @@ type Config struct {
 	RTCUsername          string `mapstructure:"RTC_USERNAME"`
 	RTCPassword          string `mapstructure:"RTC_PASSWORD"`
 	StunServerAddress    string `mapstructure:"STUN_SERVER_ADDRESS"`
+	Environment          string `mapstructure:"ENVIRONMENT"`
 }
 
 // Load the app.env file and unmarshal it into the Config struct
