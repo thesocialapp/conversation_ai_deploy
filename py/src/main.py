@@ -2,8 +2,8 @@ import redis
 import threading
 from elevenlabs import set_api_key
 from flask import Flask, jsonify, Response
-from decouple import config
 from events import cai_events
+from decouple import config
 
 app = Flask(__name__)
 pubsub_initialized = threading.Event()

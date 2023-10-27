@@ -1,5 +1,5 @@
 from flask import Flask
-from src import processing
+from ai import processing
 import redis
 from threading import Event
 

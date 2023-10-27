@@ -23,8 +23,8 @@ def synthesize_voice(text: str):
 
 def _synthesize_response(llm, text: str) -> str:
     try:
-        messages = [HumanMessage(text=text)]
-        answer = llm.predict_messages(messages=messages)
+    
+        answer = llm.predict(text)
         print("Synthesizing response...")
         return answer
     except Exception as e:
