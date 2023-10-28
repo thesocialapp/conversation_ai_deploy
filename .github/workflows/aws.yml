@@ -52,7 +52,7 @@ jobs:
                 ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
                 IMAGE_TAG: ${{ github.sha }}
               run: |
-                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile_go .
+                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-py -f Dockerfile_go .
                 docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             
             - name: Build, tag, and push Python image to Amazon ECR
@@ -61,5 +61,5 @@ jobs:
                 ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
                 IMAGE_TAG: ${{ github.sha }}
               run: |
-                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile_python .
+                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-py -f Dockerfile_python .
                 docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
