@@ -16,10 +16,12 @@ spec:
     spec:
       containers:
       - name: cai-ai-go
-        image: 657407981560.dkr.ecr.us-east-2.amazonaws.com/cai@sha256:8fddbdd904731c7d813da0bf5fe311dd8e433bc10635663a39645e2e1e92a8f9
+        imagePullPolicy: Always
+        image: 657407981560.dkr.ecr.us-east-2.amazonaws.com/cai:699c5164be7304bded4bb9d54929caef9100a908-go
         ports:
         - containerPort: 4400
       - name: cai-ai-py
-        image: 657407981560.dkr.ecr.us-east-2.amazonaws.com/cai:fc38dcf5df160d723ae16c8f908e7b35f4b65fad
+        imagePullPolicy: Always
+        image: 657407981560.dkr.ecr.us-east-2.amazonaws.com/cai:699c5164be7304bded4bb9d54929caef9100a908-py
         ports:
         - containerPort: 4041
