@@ -4,7 +4,7 @@ from decouple import config
 from langchain.llms import OpenAI
 import configs
 
-llm = OpenAI(openai_api_key=configs.openaiKey)
+llm = OpenAI(openai_api_key=configs.openAiKey)
 
 def synthesize_voice(text: str):
     """Convert transcription to audio"""
