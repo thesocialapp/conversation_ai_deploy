@@ -17,7 +17,9 @@ pubsub_initialized = threading.Event()
 set_api_key(configs.elevenlabsKey)
 
 # Initialize redis
-r = redis.Redis()
+parts = configs.redisAddress.split(':')
+_host, _port = parts[0], int(parts[1])
+r = redis.StrictRedis(host=_host, port=_port, db=0)
 
 def start_rpubsub():
     """Start the redis pubsub thread"""
@@ -33,9 +35,7 @@ def stream():
 
 
 def start_app():
-    parts = configs.redisAddress.split(':')
-    host, port = parts[0], int(parts[1])
-    app.run(host=host, port=port, debug=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=configs.pyPort, debug=True, use_reloader=False)
 
 def run_redis_thread():
     pubsub_thread = threading.Thread(target=start_rpubsub)
