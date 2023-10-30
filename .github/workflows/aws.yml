@@ -65,7 +65,7 @@ jobs:
                 docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
             
             - name: Update Kube config
-              run: aws eks update-kubeconfig --name cai-eks --region ${{ env.AWS_REGION }}
+              run: aws eks update-kubeconfig --name cai --region ${{ env.AWS_REGION }}
             
             - name: Deploy image to AWS EKS
               run: |
