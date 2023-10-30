@@ -7,12 +7,10 @@ import (
 	util "github.com/thesocialapp/conversation-ai/go/util"
 
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	socketio "github.com/googollee/go-socket.io"
-	"github.com/googollee/go-socket.io/engineio"
 	"github.com/rs/zerolog/log"
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -88,15 +86,15 @@ func (s *Server) setUpRouter() {
 }
 
 func (s *Server) setupSocketIO() {
-	timeout := time.Duration(s.config.SocketIOPingTimeout) * time.Second
-	interval := time.Duration(s.config.SocketIOPingInterval) * time.Second
+	// timeout := time.Duration(s.config.SocketIOPingTimeout) * time.Second
+	// interval := time.Duration(s.config.SocketIOPingInterval) * time.Second
 
-	options := &engineio.Options{
-		PingTimeout:  timeout,
-		PingInterval: interval,
-	}
+	// options := &engineio.Options{
+	// 	PingTimeout:  timeout,
+	// 	PingInterval: interval,
+	// }
 
-	sock := socketio.NewServer(options)
+	sock := socketio.NewServer(nil)
 
 	redisOpts := &socketio.RedisAdapterOptions{
 		Addr:   s.config.RedisAddr,
