@@ -70,7 +70,7 @@ jobs:
             - name: Deploy image to AWS EKS
               run: |
                 kubectl apply -f eks/aws-auth.yml
-                kubeclt apply -f eks/deployment.yml
+                kubectl apply -f eks/deployment.yml
                 kubectl apply -f eks/service.yml
-                kubeclt apply -f eks/issuer.yml
-                kubeclt apply -f eks/ingress.yml
+                kubectl apply -f eks/issuer.yml
+                kubectl apply -f eks/ingress.yml
