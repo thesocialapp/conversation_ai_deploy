@@ -1,6 +1,5 @@
 from elevenlabs import generate
 from langchain.schema import HumanMessage
-from decouple import config
 from langchain.llms import OpenAI
 import configs
 
@@ -23,7 +22,6 @@ def synthesize_voice(text: str):
 
 def _synthesize_response(llm, text: str) -> str:
     try:
-    
         answer = llm.predict(text)
         print("Synthesizing response...")
         return answer
