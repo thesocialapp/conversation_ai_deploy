@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	util "github.com/thesocialapp/conversation-ai/go/util"
@@ -52,7 +53,28 @@ func NewServer(config util.Config) (*Server, error) {
 	// Init Gin router
 	server.setUpRouter()
 
+	go server.subscribeToAudioResponse()
+
 	return server, nil
+}
+
+func (s *Server) subscribeToAudioResponse() {
+	ctx := context.Background()
+
+	/// After a working connection we listen for audio responses
+	/// from eleven labs
+	subChan := s.rClient.Subscribe(ctx, "audio_response").Channel()
+	/// Run a goroutine to listen for messages
+	go func() {
+		for msg := range subChan {
+			// Convert the payload from base64 to bytes
+			// and send it to the client
+			audioByte := base64.StdEncoding.EncodeToString([]byte(msg.Payload))
+			s.io.BroadcastToNamespace("/", "audio_response", audioByte)
+			// conn.Emit("audio_response", audioByte)
+		}
+	}()
+
 }
 
 func (s *Server) setUpRouter() {

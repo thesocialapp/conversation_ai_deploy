@@ -13,21 +13,6 @@ import (
 
 func (server *Server) onConnect(conn socketio.Conn) error {
 	log.Info().Msgf("Client connected: %s", conn.ID())
-	ctx := context.Background()
-
-	/// After a working connection we listen for audio responses
-	/// from eleven labs
-	subChan := server.rClient.Subscribe(ctx, "audio_response").Channel()
-	/// Run a goroutine to listen for messages
-	go func() {
-		for msg := range subChan {
-			// Convert the payload from base64 to bytes
-			// and send it to the client
-			audioByte := base64.StdEncoding.EncodeToString([]byte(msg.Payload))
-			conn.Emit("audio_response", audioByte)
-		}
-	}()
-
 	return nil
 }
 
@@ -51,7 +36,6 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	if err != nil {
 		log.Error().Msgf("Error decoding base64: %s", err.Error())
 		io.Emit("transcriptionResult", "error decoding"+err.Error())
-
 	}
 
 	var audioData AudioData
@@ -77,7 +61,6 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	if err != nil {
 		log.Error().Msgf("Error creating temp file: %s", err.Error())
 		io.Emit("transcriptionResult", "error creating temp file"+err.Error())
-		return
 	}
 
 	defer f.Close()
@@ -87,13 +70,11 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	if _, err := f.Write(audioBytes); err != nil {
 		log.Error().Msgf("Error writing to temp file: %s", err.Error())
 		io.Emit("transcriptionResult", "error writing to temp file"+err.Error())
-
 	}
 
 	if err != nil {
 		log.Error().Msgf("Error creating temp file: %s", err.Error())
 		io.Emit("transcriptionResult", "error creating temp file"+err.Error())
-
 	}
 
 	// reader := bytes.NewReader(audioBytes)
@@ -109,7 +90,6 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	resp, err := server.client.CreateTranscription(ctx, req)
 	if err != nil {
 		log.Err(err).Msgf("Error creating transcription: %s", err.Error())
-
 	}
 
 	log.Info().Msgf("Transcription: %s", resp.Text)
@@ -117,7 +97,6 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	r, err := server.rClient.Publish(context.Background(), "audio", resp.Text).Result()
 	if err != nil {
 		log.Error().Msgf("Error publishing message: %s", err.Error())
-
 	}
 	log.Info().Msgf("Client audio stream: %v", r)
 	/// Try to save the audio file
