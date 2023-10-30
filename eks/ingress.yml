@@ -1,8 +1,18 @@
 apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: nginx
+spec:
+  controller: k8s.io/ingress-nginx
+---
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: cai-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
 spec:
+  ingressClassName: nginx
   rules:
   - host: "api.socialxai-api.net"
     http:
@@ -14,4 +24,8 @@ spec:
             name: cai-api-service
             port:
               number: 80
+  tls:
+  - hosts:
+    - "api.socialxai-api.net"
+    secretName: cai-api-cert
           

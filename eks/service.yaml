@@ -9,4 +9,5 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 4400
+      name: go-http-service
   type: ClusterIP
