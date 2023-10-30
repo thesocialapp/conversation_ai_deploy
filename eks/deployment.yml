@@ -5,7 +5,7 @@ metadata:
   labels:
     app: cai-api
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: cai-api
@@ -17,11 +17,11 @@ spec:
       containers:
       - name: cai-ai-go
         imagePullPolicy: Always
-        image: 657407981560.dkr.ecr.us-east-2.amazonaws.com/cai:699c5164be7304bded4bb9d54929caef9100a908-go
+        image: 657407981560.dkr.ecr.us-east-2.amazonaws.com/cai:133f321ae7ffa3a9326d1bf43d7bf5e4f38cfb86-go
         ports:
         - containerPort: 4400
       - name: cai-ai-py
         imagePullPolicy: Always
-        image: 657407981560.dkr.ecr.us-east-2.amazonaws.com/cai:699c5164be7304bded4bb9d54929caef9100a908-py
+        image: 657407981560.dkr.ecr.us-east-2.amazonaws.com/cai:133f321ae7ffa3a9326d1bf43d7bf5e4f38cfb86-py
         ports:
         - containerPort: 4041

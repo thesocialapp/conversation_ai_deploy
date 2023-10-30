@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cai-ingress
+spec:
+  rules:
+  - host: "api.socialxai-api.net"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: cai-api-service
+            port:
+              number: 80
+          
