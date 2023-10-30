@@ -52,7 +52,7 @@ jobs:
                 ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
                 IMAGE_TAG: ${{ github.sha }}
               run: |
-                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-go -t latest-go -f Dockerfile_go .
+                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-go -t $ECR_REGISTRY/$ECR_REPOSITORY:latest-go -f Dockerfile_go .
                 docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
             
             - name: Build, tag, and push Python image to Amazon ECR
@@ -61,8 +61,11 @@ jobs:
                 ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
                 IMAGE_TAG: ${{ github.sha }}
               run: |
-                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-py -t latest-py -f Dockerfile_python .
+                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-py -t $ECR_REGISTRY/$ECR_REPOSITORY:latest-py -f Dockerfile_python .
                 docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
+            
+            - name: Update Kube config
+              run: aws eks update-kubeconfig --name cai-eks --region ${{ env.AWS_REGION }}
             
             - name: Deploy image to AWS EKS
               run: |
