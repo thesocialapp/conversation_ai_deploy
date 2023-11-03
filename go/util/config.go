@@ -12,6 +12,7 @@ type Config struct {
 	RTCUsername          string `mapstructure:"RTC_USERNAME"`
 	RTCPassword          string `mapstructure:"RTC_PASSWORD"`
 	StunServerAddress    string `mapstructure:"STUN_SERVER_ADDRESS"`
+	ElevenLabsAPIKey     string `mapstructure:"ELEVEN_LABS_APIKEY"`
 	Environment          string `mapstructure:"ENVIRONMENT"`
 }
 
