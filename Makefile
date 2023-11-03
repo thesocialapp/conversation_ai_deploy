@@ -20,5 +20,10 @@ server:
 corturn:
 	docker run -d -p 3478:3478 -p 3478:3478/udp -p 5349:5349 -p 5349:5349/udp -p 49152-65535:49152-65535/udp coturn/coturn
 	
+deployement:
+	kubectl apply -f eks/deployment.yml
 
-.PHONY: redis server build build_py run run_py corturn
+service:
+	kubectl apply -f eks/service.yml
+
+.PHONY: redis server build build_py run run_py corturn deployement service

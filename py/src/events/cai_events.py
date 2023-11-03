@@ -2,13 +2,15 @@ from flask import Flask
 from ai import processing
 import redis
 from threading import Event
+import logging
 
-
-def _message_handler(app: Flask, message: str, r: redis.StrictRedis):
+def _message_handler(message: str, r: redis.StrictRedis):
     # Since the audio is coming as base64 string of bytes, we need to decode it
     # to a bytes object under base64 encoding
     try:
-        app.logger.info(f"Message received: {message['data'].decode('utf-8')}")
+        logging.info(f"Message received: {
+            message['data'].decode('utf-8')
+        }")
         # Convert message to bytes
         audioData = message["data"].decode('utf-8')
         audio = processing.synthesize_voice(audioData)
@@ -16,9 +18,9 @@ def _message_handler(app: Flask, message: str, r: redis.StrictRedis):
         
         r.publish('audio_response', audio)
     except Exception as e:
-        app.logger.error(f"Error {e}")
+        logging.error(f"Error receiving messages and transcribing them: {e}")
 
-def event_stream(app: Flask, r: redis.StrictRedis, pi: Event):
+def event_stream(r: redis.StrictRedis, pi: Event):
     try:
         # Ensure we test that Redis can handle a PING PONG and 
         #  continue once it does
@@ -36,8 +38,8 @@ def event_stream(app: Flask, r: redis.StrictRedis, pi: Event):
             # Listen for all data coming in
             for data in pubsub.listen():
                 if data['type'] == 'message':
-                    _message_handler(app, data, r)
+                    _message_handler(data, r)
         else:
-            app.logger.error('Unable to connect to Redis successfully')
+            logging.error('Unable to connect to Redis successfully')
     except redis.ConnectionError as e:
-        app.logger.error('Unable to connect to Redis successfully')
+        logging.error('Unable to connect to Redis successfully')
