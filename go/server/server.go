@@ -128,9 +128,13 @@ func (s *Server) setUpRouter() {
 }
 
 func (s *Server) setupSocketIO() {
-	// timeout := time.Duration(s.config.SocketIOPingTimeout) * time.Second
-	// interval := time.Duration(s.config.SocketIOPingInterval) * time.Second
+	// // timeout := time.Duration(s.config.SocketIOPingTimeout) * time.Second
+	// // interval := time.Duration(s.config.SocketIOPingInterval) * time.Second
 
+	// options := &engineio.Options{
+	// 	PingTimeout:  timeout,
+	// 	PingInterval: interval,
+	// }
 	// options := &engineio.Options{
 	// 	PingTimeout:  timeout,
 	// 	PingInterval: interval,
