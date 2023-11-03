@@ -8,7 +8,9 @@ def _message_handler(message: str, r: redis.StrictRedis):
     # Since the audio is coming as base64 string of bytes, we need to decode it
     # to a bytes object under base64 encoding
     try:
-        logging.info(f"Message received: {message['data'].decode('utf-8')}")
+        logging.info(f"Message received: {
+            message['data'].decode('utf-8')
+        }")
         # Convert message to bytes
         audioData = message["data"].decode('utf-8')
         audio = processing.synthesize_voice(audioData)
