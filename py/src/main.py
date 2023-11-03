@@ -23,7 +23,7 @@ r = redis.StrictRedis(host=_host, port=_port, db=0)
 
 def start_rpubsub():
     """Start the redis pubsub thread"""
-    cai_events.event_stream(app, r, pubsub_initialized)
+    cai_events.event_stream(r, pubsub_initialized)
 
 @app.route('/healthy', methods=['GET'])
 def health_check():

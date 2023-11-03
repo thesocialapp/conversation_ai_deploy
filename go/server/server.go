@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"time"
 
 	util "github.com/thesocialapp/conversation-ai/go/util"
 
@@ -11,24 +13,45 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	socketio "github.com/googollee/go-socket.io"
+
+	"github.com/haguro/elevenlabs-go"
+	el "github.com/haguro/elevenlabs-go"
+
 	"github.com/rs/zerolog/log"
 	openai "github.com/sashabaranov/go-openai"
+	langOpenAI "github.com/tmc/langchaingo/llms/openai"
 )
 
 type Server struct {
-	config  util.Config
-	router  *gin.Engine
-	io      *socketio.Server
-	client  *openai.Client
-	rClient *redis.Client
+	config   util.Config
+	router   *gin.Engine
+	io       *socketio.Server
+	client   *openai.Client
+	rClient  *redis.Client
+	llm      *langOpenAI.Chat
+	elClient *el.Client
 }
 
 func NewServer(config util.Config) (*Server, error) {
 	client := openai.NewClient(config.OpenAPIKey)
 
+	// Set up langchain open ai
+	llm, err := langOpenAI.NewChat(
+		langOpenAI.WithToken(config.OpenAPIKey),
+		langOpenAI.WithAPIVersion("v1"),
+	)
+	if err != nil {
+		log.Error().Err(err).Msgf("cannot create langchain openai client %s", err.Error())
+	}
+
+	// Set up elevenlabs
+	elClient := elevenlabs.NewClient(context.Background(), config.ElevenLabsAPIKey, 30*time.Second)
+
 	server := &Server{
-		config: config,
-		client: client,
+		config:   config,
+		client:   client,
+		llm:      llm,
+		elClient: elClient,
 	}
 
 	rdb := redis.NewClient(&redis.Options{
@@ -37,7 +60,7 @@ func NewServer(config util.Config) (*Server, error) {
 		DB:       0,  // use default DB
 	})
 
-	_, err := rdb.Ping(context.Background()).Result()
+	_, err = rdb.Ping(context.Background()).Result()
 
 	if err != nil {
 		log.Error().Err(err).Msgf("cannot connect to redis %s", err.Error())
@@ -52,7 +75,28 @@ func NewServer(config util.Config) (*Server, error) {
 	// Init Gin router
 	server.setUpRouter()
 
+	go server.subscribeToAudioResponse()
+
 	return server, nil
+}
+
+func (s *Server) subscribeToAudioResponse() {
+	ctx := context.Background()
+
+	/// After a working connection we listen for audio responses
+	/// from eleven labs
+	subChan := s.rClient.Subscribe(ctx, "audio_response").Channel()
+	/// Run a goroutine to listen for messages
+	go func() {
+		for msg := range subChan {
+			// Convert the payload from base64 to bytes
+			// and send it to the client
+			audioByte := base64.StdEncoding.EncodeToString([]byte(msg.Payload))
+			s.io.BroadcastToNamespace("/", "audio_response", audioByte)
+			// conn.Emit("audio_response", audioByte)
+		}
+	}()
+
 }
 
 func (s *Server) setUpRouter() {
@@ -86,8 +130,10 @@ func (s *Server) setUpRouter() {
 }
 
 func (s *Server) setupSocketIO() {
-	// timeout := time.Duration(s.config.SocketIOPingTimeout) * time.Second
-	// interval := time.Duration(s.config.SocketIOPingInterval) * time.Second
+
+	// // timeout := time.Duration(s.config.SocketIOPingTimeout) * time.Second
+	// // interval := time.Duration(s.config.SocketIOPingInterval) * time.Second
+
 
 	// options := &engineio.Options{
 	// 	PingTimeout:  timeout,
