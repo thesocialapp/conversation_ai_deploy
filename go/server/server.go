@@ -13,8 +13,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	socketio "github.com/googollee/go-socket.io"
+
 	"github.com/haguro/elevenlabs-go"
 	el "github.com/haguro/elevenlabs-go"
+
 	"github.com/rs/zerolog/log"
 	openai "github.com/sashabaranov/go-openai"
 	langOpenAI "github.com/tmc/langchaingo/llms/openai"
@@ -128,13 +130,11 @@ func (s *Server) setUpRouter() {
 }
 
 func (s *Server) setupSocketIO() {
+
 	// // timeout := time.Duration(s.config.SocketIOPingTimeout) * time.Second
 	// // interval := time.Duration(s.config.SocketIOPingInterval) * time.Second
 
-	// options := &engineio.Options{
-	// 	PingTimeout:  timeout,
-	// 	PingInterval: interval,
-	// }
+
 	// options := &engineio.Options{
 	// 	PingTimeout:  timeout,
 	// 	PingInterval: interval,
