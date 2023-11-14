@@ -73,8 +73,6 @@ func NewServer(config util.Config) (*Server, error) {
 	// Init Gin router
 	server.setUpRouter()
 
-	go server.subscribeToAudioResponse()
-
 	return server, nil
 }
 

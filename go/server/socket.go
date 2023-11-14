@@ -119,7 +119,7 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 		return nil
 	}))
 	if err != nil {
-		log.Err(err).Msgf("Error creating transcription: %s", err.Error())
+		log.Error().Msgf("Error publishing message: %s", err.Error())
 	}
 
 	// r, err := server.rClient.Publish(context.Background(), "audio", resp.Text).Result()
