@@ -6,8 +6,11 @@ import (
 	"os"
 
 	socketio "github.com/googollee/go-socket.io"
+	el "github.com/haguro/elevenlabs-go"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/schema"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -92,16 +95,47 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 		log.Err(err).Msgf("Error creating transcription: %s", err.Error())
 	}
 
+	io.Emit("transcriptionResult", "**waiting**")
+
 	log.Info().Msgf("Transcription: %s", resp.Text)
 
-	r, err := server.rClient.Publish(context.Background(), "audio", resp.Text).Result()
+	completion, err := server.llm.Call(ctx, []schema.ChatMessage{
+		schema.SystemChatMessage{
+			Content: "Hello! I'm here to help with questions related to airplanes. If you have any inquiries about aircraft, aviation, or related topics, feel free to ask, and I'll do my best to provide you with accurate information." +
+				"However, if your question is not related to airplanes, " +
+				" I'll still try to assist you as politely as possible." +
+				" Please keep your questions respectful and on-topic. How can I assist you today? " +
+				"This message sets the expectation that the AI is focused on airplanes but also emphasizes " +
+				"that it will politely respond to other questions while gently encouraging users to stick to the topic",
+		},
+		schema.HumanChatMessage{
+			Content: resp.Text,
+		},
+	}, llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
+		// log.Info().Msgf("Here it is %s", string(chunk))
+		//  Need an io.Write to write the audio to and then read it later on
+		//  to send it to the client
+		io.Emit("transcriptionResult", string(chunk))
+		return nil
+	}))
 	if err != nil {
 		log.Error().Msgf("Error publishing message: %s", err.Error())
 	}
-	log.Info().Msgf("Client audio stream: %v", r)
-	/// Try to save the audio file
 
-	io.Emit("transcriptionResult", "ok "+audioData.FileName)
+	// r, err := server.rClient.Publish(context.Background(), "audio", resp.Text).Result()
+	// if err != nil {
+	// 	log.Error().Msgf("Error publishing message: %s", err.Error())
+	// }
+	audio, err := server.elClient.TextToSpeech("pNInz6obpgDQGcFmaJgB", el.TextToSpeechRequest{
+		Text:    completion.Content,
+		ModelID: "eleven_monolingual_v1",
+	})
+	if err != nil {
+		log.Error().Msgf("Error converting text to speech: %s", err.Error())
+	}
+	io.Emit("audio_response", base64.StdEncoding.EncodeToString(audio))
+	log.Info().Msgf("Client audio stream: %v", completion.GetContent())
+	/// Try to save the audio file
 }
 
 func (server *Server) onError(io socketio.Conn, err error) {

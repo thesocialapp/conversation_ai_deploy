@@ -10,11 +10,15 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/dlclark/regexp2 v1.8.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
+	github.com/haguro/elevenlabs-go v0.2.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/pkoukk/tiktoken-go v0.1.2 // indirect
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
@@ -54,6 +58,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/rs/zerolog v1.31.0
 	github.com/spf13/viper v1.17.0
+	github.com/tmc/langchaingo v0.0.0-20231030002631-0fb9f07df61e
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.5.0 // indirect
