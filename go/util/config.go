@@ -14,6 +14,7 @@ type Config struct {
 	StunServerAddress    string `mapstructure:"STUN_SERVER_ADDRESS"`
 	ElevenLabsAPIKey     string `mapstructure:"ELEVEN_LABS_APIKEY"`
 	Environment          string `mapstructure:"ENVIRONMENT"`
+	PineConeApiKey       string `mapstructure:"PINECONE_API_KEY"`
 }
 
 // Load the app.env file and unmarshal it into the Config struct

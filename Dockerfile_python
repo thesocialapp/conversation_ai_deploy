@@ -1,6 +1,6 @@
 # Stage 1: Build dependencies
 
-FROM python:3.8-slim-buster as builder
+FROM python:3.8-slim-bookworm as builder
 LABEL maintainer="Brian Mwangi"
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY .env .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Create the final image
-FROM python:3.8-slim
+FROM python:3.8-slim-bookworm
 
 # Copy installed dependencies from the builder stage
 COPY --from=builder /usr/local/lib/python3.8/site-packages /usr/local/lib/python3.8/site-packages

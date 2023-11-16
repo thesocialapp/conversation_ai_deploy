@@ -1,6 +1,6 @@
 # Socket io Version 2
 # https://socket.io/docs/v2
-redis
+redis==2.10.6
 
 # For API request, needed more for checking health status and 
 # future changes
@@ -9,6 +9,7 @@ flask
 # For reading .env files
 python-dotenv
 
+# For reading .env files
 python-decouple
 
 # For transcribing audio data
@@ -20,4 +21,5 @@ elevenlabs==0.2.24
 # Lang chain
 langchain
 
-# 
+# Pdf to text
+pypdf2

@@ -11,6 +11,7 @@ services:
     networks:
       - cai-net
 
+  # Python library is here
   cai_py:
     build:
       context: .

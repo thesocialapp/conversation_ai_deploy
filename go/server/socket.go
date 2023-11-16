@@ -141,3 +141,22 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 func (server *Server) onError(io socketio.Conn, err error) {
 	log.Error().Msgf("Client error: %s", err.Error())
 }
+
+type Callback func([]byte)
+
+func (s *Server) subscribe(channel string, callback Callback) {
+	ctx := context.Background()
+
+	/// After a working connection we listen for audio responses
+	/// from eleven labs
+	subChan := s.rClient.Subscribe(ctx, channel).Channel()
+	/// Run a goroutine to listen for messages
+	go func() {
+		for msg := range subChan {
+			// Convert the payload from base64 to bytes
+			// and send it to the client
+			callback([]byte(msg.Payload))
+			// conn.Emit("audio_response", audioByte)
+		}
+	}()
+}

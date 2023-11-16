@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -73,26 +72,11 @@ func NewServer(config util.Config) (*Server, error) {
 	// Init Gin router
 	server.setUpRouter()
 
+	go server.subscribe("file-processed", func(data []byte) {
+		log.Info().Msgf("Received file: %s", string(data))
+	})
+
 	return server, nil
-}
-
-func (s *Server) subscribeToAudioResponse() {
-	ctx := context.Background()
-
-	/// After a working connection we listen for audio responses
-	/// from eleven labs
-	subChan := s.rClient.Subscribe(ctx, "audio_response").Channel()
-	/// Run a goroutine to listen for messages
-	go func() {
-		for msg := range subChan {
-			// Convert the payload from base64 to bytes
-			// and send it to the client
-			audioByte := base64.StdEncoding.EncodeToString([]byte(msg.Payload))
-			s.io.BroadcastToNamespace("/", "audio_response", audioByte)
-			// conn.Emit("audio_response", audioByte)
-		}
-	}()
-
 }
 
 func (s *Server) setUpRouter() {
@@ -120,23 +104,12 @@ func (s *Server) setUpRouter() {
 
 	// Rest routes
 	rest := router.Group("/v1")
-	rest.GET("/audio", s.UploadAudioFile)
+	rest.POST("/upload/pdf", s.UploadAudioFile)
 
 	s.router = router
 }
 
 func (s *Server) setupSocketIO() {
-	// // timeout := time.Duration(s.config.SocketIOPingTimeout) * time.Second
-	// // interval := time.Duration(s.config.SocketIOPingInterval) * time.Second
-
-	// options := &engineio.Options{
-	// 	PingTimeout:  timeout,
-	// 	PingInterval: interval,
-	// }
-	// options := &engineio.Options{
-	// 	PingTimeout:  timeout,
-	// 	PingInterval: interval,
-	// }
 
 	sock := socketio.NewServer(nil)
 
@@ -177,4 +150,8 @@ func (s *Server) StartServer() error {
 
 	defer s.io.Close()
 	return s.router.Run(port)
+}
+
+func errorResponse(err error) gin.H {
+	return gin.H{"error": err.Error()}
 }
