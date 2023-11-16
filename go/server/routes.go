@@ -46,15 +46,16 @@ func (s *Server) UploadAudioFile(ctx *gin.Context) {
 
 	tempFile, err := os.CreateTemp("", "file-*.pdf")
 	if err != nil {
+		fmt.Printf("Error creating temporary file %s", err.Error())
 		ctx.JSON(http.StatusBadRequest, errorResponse(errParsingFile))
 		return
 	}
-
 	defer tempFile.Close()
 	defer os.Remove(tempFile.Name())
 
 	// Write the file buffer to the temp file
 	if _, err := tempFile.Write(fileBuffer); err != nil {
+		fmt.Printf("Error writing to temporary file %s", err.Error())
 		ctx.JSON(http.StatusBadRequest, errorResponse(errParsingFile))
 		return
 	}
