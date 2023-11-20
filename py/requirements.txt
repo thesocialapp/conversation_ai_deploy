@@ -22,4 +22,4 @@ elevenlabs==0.2.24
 langchain
 
 # Pdf to text
-pypdf2
+pypdf
