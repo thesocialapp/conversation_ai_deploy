@@ -20,7 +20,7 @@ services:
     depends_on:
       - redis
     ports:
-      - "4401:4401"
+      - "4041:4041"
     command: ["python", "main.py"]
     networks:
       - cai-net
@@ -31,6 +31,7 @@ services:
       context: .
       dockerfile: Dockerfile_go
     container_name: cai_go
+    restart: always
     depends_on:
       - redis
       - cai_py
