@@ -1,3 +1,4 @@
+import json
 from flask import Flask
 from ai import processing
 import redis
@@ -18,11 +19,15 @@ def _message_handler(message: str, r: redis.StrictRedis):
         # If the text content is empty, return an error publish a failure
         # through redis pubsub
         if text_content == "":
-            r.publish('file-result', "Error extracting text from file")
+            result_data = {"success": False, "data": ""}
+            json_payload = json.dumps(result_data)
+            r.publish('file-result', json_payload)
             return
-        logging.info(f"Extracted text: {text_content}")
-        print(f"Extracted text: {text_content}")
-        r.publish('file-result', "success")
+        else:
+            result_data = {"success": True, "data": text_content}
+            json_payload = json.dumps(result_data)
+            r.publish('file-result', json_payload)
+            return
     except Exception as e:
         logging.error(f"Error receiving messages and transcribing them: {e}")
 

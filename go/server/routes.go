@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -15,6 +16,11 @@ import (
 
 // Create a new error const for failing to parse file
 var errParsingFile = fmt.Errorf("failed to parse file")
+
+type ResultData struct {
+	Success bool   `json:"success"`
+	Data    string `json:"data"`
+}
 
 func (s *Server) UploadAudioFile(ctx *gin.Context) {
 
@@ -57,23 +63,38 @@ func (s *Server) UploadAudioFile(ctx *gin.Context) {
 		return
 	}
 
-	resultChannel := make(chan string, 1)
+	// Create a small struct to manage the result
+
+	resultChannel := make(chan ResultData, 1)
 
 	// Once the py microservice process it will send a message back here to tell us that processing
 	// is complete and we can now show a success message to the client
 	// We set up a go routine to listen for the message from redis
 	go s.subscribe("file-result", func(payload []byte) {
-		resultChannel <- string(payload)
+		var resultData ResultData
+		// Convert the payload from base64 to bytes
+		// and send it to the client
+		err := json.Unmarshal(payload, &resultData)
+		if err != nil {
+			resultChannel <- ResultData{
+				Success: false,
+				Data:    err.Error(),
+			}
+			return
+		}
+
+		resultChannel <- resultData
 	})
 
 	select {
 	case result := <-resultChannel:
-		if result == "success" {
-			ctx.JSON(http.StatusOK, successResponse(result))
+		if result.Success {
+			// Convert the result to json
+			ctx.JSON(http.StatusOK, gin.H{"data": result.Data, "success": true})
 		} else {
 			ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf("failed to process file")))
 		}
-	case <-time.After(10 * time.Second):
+	case <-time.After(5 * time.Second):
 		ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf("timeout waiting for file processing")))
 	}
 }

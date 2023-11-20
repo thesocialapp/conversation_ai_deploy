@@ -24,8 +24,7 @@ def extract_text_content(file_base64):
                 page = pdfReader.pages[num]
                 content = page.extract_text()
                 extracted_text += content
-
-            extracted_text = page.extract_text()
+                
             os.remove(tmp.name)
 
         return extracted_text    
