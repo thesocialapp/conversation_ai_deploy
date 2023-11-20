@@ -42,11 +42,14 @@ def process_upload_pdf(request):
                 # Extract the text from the file
                 pdfReader = PdfReader(tmp.name)
                 extracted_text = ""
-                for page_num in range(pdfReader.pages):
-                    page = pdfReader.getPage(page_num)
-                    text = page.extract_text()
-                    extracted_text += "\n" + text
-                    print("Page {}:\n{}".format(page_num, text))
+                # Loop through all the pages and extract the text
+                for num in range(len(pdfReader.pages)):
+                    page = pdfReader.pages[num]
+                    content = page.extract_text()
+                    extracted_text += content
+                    
+                page = pdfReader.pages[0]
+                extracted_text = page.extract_text()                
 
             return jsonify(status='OK', data={"text": extracted_text, "size": tmp_size,}), 200
         except Exception as e:

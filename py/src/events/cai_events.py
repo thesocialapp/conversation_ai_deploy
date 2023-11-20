@@ -9,21 +9,20 @@ def _message_handler(message: str, r: redis.StrictRedis):
     # Since the audio is coming as base64 string of bytes, we need to decode it
     # to a bytes object under base64 encoding
     try:
-        # Convert message to bytes
-        # audioData = message["data"].decode('utf-8')
-        # audio = processing.synthesize_voice(audioData)
-        # Convert audio to base64 string
-        print(f"Type of message['data']: {type(message['data'])}")
-        print(f"Length of message['data']: {len(message['data'])}")
-        print(f"Message received: {message['data'].decode('utf-8')}")
-        fileData = message["data"]
 
-        print(f"The file data is {fileData}")
+        fileData = message["data"]
         
         # Extract text from the file
         text_content = extract.extract_text_content(fileData)
-        print(f"Text content: {text_content}")
-        r.publish('file-processed', text_content)
+        
+        # If the text content is empty, return an error publish a failure
+        # through redis pubsub
+        if text_content == "":
+            r.publish('file-result', "Error extracting text from file")
+            return
+        logging.info(f"Extracted text: {text_content}")
+        print(f"Extracted text: {text_content}")
+        r.publish('file-result', "success")
     except Exception as e:
         logging.error(f"Error receiving messages and transcribing them: {e}")
 
