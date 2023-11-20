@@ -1,23 +1,20 @@
 package server
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/dslipak/pdf"
 	"github.com/gin-gonic/gin"
 )
 
 // Create a new error const for failing to parse file
 var errParsingFile = fmt.Errorf("failed to parse file")
-var errOpeningFile = fmt.Errorf("failed to open file")
-var errReadingFile = fmt.Errorf("failed to read file")
 
 func (s *Server) UploadAudioFile(ctx *gin.Context) {
 
@@ -44,87 +41,41 @@ func (s *Server) UploadAudioFile(ctx *gin.Context) {
 		return
 	}
 
-	tempFile, err := os.CreateTemp("", "file-*.pdf")
+	// Convert the file buffer to base64
+	fileBase64 := base64.StdEncoding.EncodeToString(fileBuffer)
+
+	// Send the file to py using redis pubsub
+	r, err := s.rClient.Publish(ctx, "file-document", fileBase64).Result()
 	if err != nil {
-		fmt.Printf("Error creating temporary file %s", err.Error())
-		ctx.JSON(http.StatusBadRequest, errorResponse(errParsingFile))
-		return
-	}
-	defer tempFile.Close()
-	defer os.Remove(tempFile.Name())
-
-	// Write the file buffer to the temp file
-	if _, err := tempFile.Write(fileBuffer); err != nil {
-		fmt.Printf("Error writing to temporary file %s", err.Error())
-		ctx.JSON(http.StatusBadRequest, errorResponse(errParsingFile))
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	// Create an inmemory file from multipart.FileHeader
-	r, err := pdf.Open(tempFile.Name())
-	if err != nil {
-		fmt.Printf("Error opening file: %s\n", err.Error())
-		ctx.JSON(http.StatusBadRequest, errorResponse(errOpeningFile))
+	// Handle the subcribe option to ensure that the file was processed
+	if r == 0 {
+		ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf("failed to process file")))
 		return
 	}
 
-	totalPages := r.NumPage()
-	fmt.Printf("Total pages: %d\n", totalPages)
-	var content strings.Builder
-	for pageIndex := 1; pageIndex <= totalPages; pageIndex++ {
-		page := r.Page(pageIndex)
-		if page.V.IsNull() {
-			continue
-		}
+	resultChannel := make(chan string, 1)
 
-		fmt.Printf("Page %d\n", pageIndex)
-		// Page content
-		rows, err := page.GetTextByRow()
-		if err != nil {
-			fmt.Printf("Error getting text by row: %s\n", err.Error())
-			ctx.JSON(http.StatusBadRequest, errorResponse(errReadingFile))
-			return
-		}
+	// Once the py microservice process it will send a message back here to tell us that processing
+	// is complete and we can now show a success message to the client
+	// We set up a go routine to listen for the message from redis
+	go s.subscribe("file-result", func(payload []byte) {
+		resultChannel <- string(payload)
+	})
 
-		for _, row := range rows {
-			println(">>> row:", row.Position)
-			for _, word := range row.Content {
-				fmt.Println(">>> word:", word.S)
-			}
+	select {
+	case result := <-resultChannel:
+		if result == "success" {
+			ctx.JSON(http.StatusOK, successResponse(result))
+		} else {
+			ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf("failed to process file")))
 		}
-
-		// Append all the page content to the content string
-		var lastTextStyle pdf.Text
-		for _, text := range page.Content().Text {
-			if isSameSentence(text, lastTextStyle) {
-				fmt.Print("We have the same sentence\n")
-				lastTextStyle.S += text.S
-			} else {
-				fmt.Printf("Font: %s, Font-size: %f, x: %f, y: %f, content: %s \n", lastTextStyle.Font, lastTextStyle.FontSize, lastTextStyle.X, lastTextStyle.Y, lastTextStyle.S)
-				lastTextStyle = text
-				// Get text by row
-
-				content.WriteString(text.S)
-			}
-		}
+	case <-time.After(10 * time.Second):
+		ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf("timeout waiting for file processing")))
 	}
-
-	// Print the content
-	fmt.Printf("Content: %s\n", content.String())
-
-	// // Read the file
-	// b, err := io.ReadAll(reader)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusBadRequest, errorResponse(errReadingFile))
-	// 	return
-	// }
-	// fmt.Printf("File content: %s\n", string(b))
-	// Send back the name of the file back to the client
-	ctx.String(http.StatusOK, fmt.Sprintf("File %s uploaded successfully", file.Filename))
-}
-
-func isSameSentence(a, b pdf.Text) bool {
-	return a.Font == b.Font && a.FontSize == b.FontSize && a.X == b.X && a.Y == b.Y
 }
 
 // Handle pubsub events from Redis to client
@@ -189,23 +140,24 @@ func isValidFileType(file *multipart.FileHeader, allowedTypes []string) bool {
 	return false
 }
 
-func getFileMIMEType(file *multipart.FileHeader) (string, error) {
-	src, err := file.Open()
-	if err != nil {
-		return "", err
-	}
-	defer src.Close()
+// getFileMIMEType returns the MIME type of the file
+// func getFileMIMEType(file *multipart.FileHeader) (string, error) {
+// 	src, err := file.Open()
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	defer src.Close()
 
-	// Read a chunk to determine the file type
-	buffer := make([]byte, 512)
-	_, err = src.Read(buffer)
-	if err != nil {
-		return "", err
-	}
+// 	// Read a chunk to determine the file type
+// 	buffer := make([]byte, 512)
+// 	_, err = src.Read(buffer)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	// Reset the file position
-	src.Seek(0, io.SeekStart)
+// 	// Reset the file position
+// 	src.Seek(0, io.SeekStart)
 
-	// Detect the MIME type based on the file content
-	return http.DetectContentType(buffer), nil
-}
+// 	// Detect the MIME type based on the file content
+// 	return http.DetectContentType(buffer), nil
+// }
