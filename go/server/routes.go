@@ -68,21 +68,63 @@ func (s *Server) UploadAudioFile(ctx *gin.Context) {
 		return
 	}
 
-	reader, err := r.GetPlainText()
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(errReadingFile))
-		return
+	totalPages := r.NumPage()
+	fmt.Printf("Total pages: %d\n", totalPages)
+	var content strings.Builder
+	for pageIndex := 1; pageIndex <= totalPages; pageIndex++ {
+		page := r.Page(pageIndex)
+		if page.V.IsNull() {
+			continue
+		}
+
+		fmt.Printf("Page %d\n", pageIndex)
+		// Page content
+		rows, err := page.GetTextByRow()
+		if err != nil {
+			fmt.Printf("Error getting text by row: %s\n", err.Error())
+			ctx.JSON(http.StatusBadRequest, errorResponse(errReadingFile))
+			return
+		}
+
+		for _, row := range rows {
+			println(">>> row:", row.Position)
+			for _, word := range row.Content {
+				fmt.Println(">>> word:", word.S)
+			}
+		}
+
+		// Append all the page content to the content string
+		var lastTextStyle pdf.Text
+		for _, text := range page.Content().Text {
+			if isSameSentence(text, lastTextStyle) {
+				fmt.Print("We have the same sentence\n")
+				lastTextStyle.S += text.S
+			} else {
+				fmt.Printf("Font: %s, Font-size: %f, x: %f, y: %f, content: %s \n", lastTextStyle.Font, lastTextStyle.FontSize, lastTextStyle.X, lastTextStyle.Y, lastTextStyle.S)
+				lastTextStyle = text
+				// Get text by row
+
+				content.WriteString(text.S)
+			}
+		}
 	}
 
-	// Read the file
-	b, err := io.ReadAll(reader)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(errReadingFile))
-		return
-	}
-	fmt.Printf("File content: %s\n", string(b))
+	// Print the content
+	fmt.Printf("Content: %s\n", content.String())
+
+	// // Read the file
+	// b, err := io.ReadAll(reader)
+	// if err != nil {
+	// 	ctx.JSON(http.StatusBadRequest, errorResponse(errReadingFile))
+	// 	return
+	// }
+	// fmt.Printf("File content: %s\n", string(b))
 	// Send back the name of the file back to the client
 	ctx.String(http.StatusOK, fmt.Sprintf("File %s uploaded successfully", file.Filename))
+}
+
+func isSameSentence(a, b pdf.Text) bool {
+	return a.Font == b.Font && a.FontSize == b.FontSize && a.X == b.X && a.Y == b.Y
 }
 
 // Handle pubsub events from Redis to client
