@@ -21,7 +21,14 @@ spec:
         path: "/"
         backend:
           service:
-            name: cai-api-service
+            name: cai-go-service
+            port:
+              number: 80
+      - pathType: Prefix
+        path: "/py"
+        backend:
+          service:
+            name: cai-py-service
             port:
               number: 80
   tls:
