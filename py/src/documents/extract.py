@@ -1,6 +1,6 @@
 import base64
 import io
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 import logging
 
 def extract_text_content(file_base64):
