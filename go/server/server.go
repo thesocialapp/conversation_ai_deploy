@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	socketio "github.com/googollee/go-socket.io"
-	"github.com/haguro/elevenlabs-go"
 	el "github.com/haguro/elevenlabs-go"
 	"github.com/rs/zerolog/log"
 	openai "github.com/sashabaranov/go-openai"
@@ -42,7 +41,7 @@ func NewServer(config util.Config) (*Server, error) {
 	}
 
 	// Set up elevenlabs
-	elClient := elevenlabs.NewClient(context.Background(), config.ElevenLabsAPIKey, 30*time.Second)
+	elClient := el.NewClient(context.Background(), config.ElevenLabsAPIKey, 30*time.Second)
 
 	server := &Server{
 		config:   config,
@@ -71,10 +70,6 @@ func NewServer(config util.Config) (*Server, error) {
 
 	// Init Gin router
 	server.setUpRouter()
-
-	go server.subscribe("file-processed", func(data []byte) {
-		log.Info().Msgf("Received file: %s", string(data))
-	})
 
 	return server, nil
 }
@@ -154,4 +149,8 @@ func (s *Server) StartServer() error {
 
 func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
+}
+
+func successResponse(message string) gin.H {
+	return gin.H{"message": message}
 }
