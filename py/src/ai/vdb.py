@@ -7,8 +7,10 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from chromadb import Collection
 import configs
 from langchain.vectorstores import chroma
-from langchain.chains import QAGenerationChain
-from langchain.llms import openai
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema import StrOutputParser
+from langchain.schema.runnable import RunnablePassthrough
 # Create a VectorDb singleton that initializes chromadb and allows it to be accessinle across the application
 class VectorDb:
     def __init__(self, collection_name, embedding_function_name="all-MiniLM-L6-v2"):
@@ -71,11 +73,36 @@ class VectorDb:
             collection_name=collection_name,
             embedding_function=embedding_function,
         )
-        return db4
+        return db4.as_retriever()
     
     def query_search(self, query: str):
         return self.db4.similarity_search(query=query, k=10)
     
+    def __format_docs(docs):
+        return "\n\n".join(d.page_content for d in docs)
+    
+    def query_prompt(self, query: str):
+        """Query the database using a prompt."""
+        template = """
+        Answer the question based solely on the following context:
+         {context}
+         Question: {question}
+         """
+        prompt = ChatPromptTemplate.from_template(template)
+        model = ChatOpenAI(model="gpt-3.5-turbo", )
+        
+        retriever = self.db4.as_retriever()
+        chain = (
+            {"context": retriever | self.__format_docs, "question" : RunnablePassthrough()}
+            | prompt
+            | model
+            | StrOutputParser()
+            ,
+        )
+        # Stream the output
+        return chain.stream(query)
+
+
      
 
        

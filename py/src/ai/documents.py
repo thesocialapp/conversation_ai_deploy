@@ -1,5 +1,5 @@
 from langchain.document_loaders import PyPDFium2Loader
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
 
 def load_document(path: str):
@@ -9,7 +9,7 @@ def load_document(path: str):
 
 def split_to_chunks(documents: list):
     """Split a document into chunks."""
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100, add_start_index=True)
     docs = text_splitter.split_documents(documents)
 
     return docs
