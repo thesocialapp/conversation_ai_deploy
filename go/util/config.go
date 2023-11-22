@@ -15,6 +15,7 @@ type Config struct {
 	ElevenLabsAPIKey     string `mapstructure:"ELEVEN_LABS_APIKEY"`
 	Environment          string `mapstructure:"ENVIRONMENT"`
 	PineConeApiKey       string `mapstructure:"PINECONE_API_KEY"`
+	VoiceCode            string `mapstructure:"VOICE_CODE"`
 }
 
 // Load the app.env file and unmarshal it into the Config struct

@@ -23,3 +23,21 @@ langchain
 
 # Pdf to text
 pypdf
+
+# Pdf miner to perform layout analysis of the text
+pdfminer.six
+
+# To identify tables
+pdfplumber
+
+# Convert cropped PDF image to png
+pdf2image
+
+# To read the pdf image
+Pillow
+
+# To read the pdf image
+pytesseract
+
+# For storing pdf's and etc
+pinecone-client

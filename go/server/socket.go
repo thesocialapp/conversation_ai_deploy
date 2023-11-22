@@ -126,7 +126,7 @@ func (server *Server) streamAudio(io socketio.Conn, data string) {
 	// if err != nil {
 	// 	log.Error().Msgf("Error publishing message: %s", err.Error())
 	// }
-	audio, err := server.elClient.TextToSpeech("pNInz6obpgDQGcFmaJgB", el.TextToSpeechRequest{
+	audio, err := server.elClient.TextToSpeech(server.config.VoiceCode, el.TextToSpeechRequest{
 		Text:    completion.Content,
 		ModelID: "eleven_monolingual_v1",
 	})
