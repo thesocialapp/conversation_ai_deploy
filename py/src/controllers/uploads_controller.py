@@ -202,8 +202,8 @@ def crop_image(element: LTFigure, pageObj: PageObject):
     # Get the coordinates of the image
     [image_left, image_top, image_right, image_bottom] = [element.x0, element.y0, element.x1, element.y1]
     # Crop the image using the coordinates
-    pageObj.mediaBox.lower_left = (image_left, image_bottom)
-    pageObj.mediaBox.upper_right = (image_right, image_top)
+    pageObj.mediabox.lower_left = (image_left, image_bottom)
+    pageObj.mediabox.upper_right = (image_right, image_top)
 
     cropped_pdf_writer = PdfWriter()
     cropped_pdf_writer.addpage(pageObj)

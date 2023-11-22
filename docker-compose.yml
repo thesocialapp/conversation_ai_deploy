@@ -19,6 +19,7 @@ services:
     container_name: cai_py
     depends_on:
       - redis
+      - chromadb
     ports:
       - "4041:4041"
     command: ["python", "main.py"]
@@ -40,6 +41,21 @@ services:
     command: ["/app/main"]
     networks:
       - cai-net
+
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - index_data:/chroma/.chroma/index
+    ports:
+      - 8000:8000
+    networks:
+      - cai-net
+
+volumes:
+  index_data:
+    driver: local
+  backups:
+    driver: local
 
 networks:
   cai-net:

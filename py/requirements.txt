@@ -41,3 +41,21 @@ pytesseract
 
 # For storing pdf's and etc
 pinecone-client
+
+# Chroma DB
+chromadb
+
+# For storing pdf's and etc
+sentence_transformers
+
+# For unstructured data
+unstructured
+
+# 
+python-socketio==4.6.0
+
+# For handling JSON, used by JSONLoader for langchain
+jq
+
+# For extracting images
+rapidocr-onnxruntime

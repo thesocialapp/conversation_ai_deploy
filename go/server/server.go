@@ -150,7 +150,3 @@ func (s *Server) StartServer() error {
 func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
-
-func successResponse(message string) gin.H {
-	return gin.H{"message": message}
-}
