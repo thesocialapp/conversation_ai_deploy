@@ -12,6 +12,14 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
 # Create a VectorDb singleton that initializes chromadb and allows it to be accessinle across the application
+
+# Trying to understand a working flow
+# 1. The user uploads a document
+# 2. The document is split into chunks
+# 3. We create a collection
+# 4. We create a document and add the split document to the collection
+# 5. We create a vector store
+# 6. We query the vector store using a prompt and return the results
 class VectorDb:
     def __init__(self, collection_name, embedding_function_name="all-MiniLM-L6-v2"):
         self.db = self.__setup_client()
@@ -58,6 +66,14 @@ class VectorDb:
     def create_document(self, collection: Collection, document, metadatas, ids):
         try:
             doc = collection.add(documents=document, metadatas=metadatas, ids=ids)
+            return doc
+        except Exception as e:
+            print(e)
+            return None
+        
+    def find_document(self, collection: Collection, id):
+        try:
+            doc = collection.find(id=id)
             return doc
         except Exception as e:
             print(e)
