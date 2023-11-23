@@ -9,6 +9,8 @@ from langchain.vectorstores import chroma
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
+from langchain.chains import RetrievalQA
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.schema.runnable import RunnablePassthrough
 # Create a VectorDb singleton that initializes chromadb and allows it to be accessinle across the application
 
@@ -25,6 +27,12 @@ class VectorDb:
     def __init__(self, collection_name, embedding_function_name="all-MiniLM-L6-v2"):
         self.db = self.__setup_client()
         self.collection_name = collection_name
+        self.llm = ChatOpenAI(
+            streaming=True,
+            model="gpt-3.5-turbo",
+            callbacks=[StreamingStdOutCallbackHandler()],
+            temperature=0,
+        )
         self.db4 = self.__create(collection_name=collection_name, embedding_function_name=embedding_function_name)
 
     @classmethod
@@ -123,28 +131,17 @@ class VectorDb:
     def query_search(self, query: str):
         return self.db4.similarity_search(query=query, k=10)
     
-    def __format_docs(docs):
+    def _format_docs(self, docs):
         return "\n\n".join(d.page_content for d in docs)
     
     def query_prompt(self, query: str):
-        """Query the database using a prompt."""
-        template = """
-        Answer the question based solely on the following context:
-         {context}
-         Question: {question}
-         """
-        prompt = ChatPromptTemplate.from_template(template)
-        model = ChatOpenAI(model="gpt-3.5-turbo",)
-        
-        chain = (
-            {"context": self.db4 | self.__format_docs, "question" : RunnablePassthrough()}
-            | prompt
-            | model
-            | StrOutputParser()
-            ,
+        qa = RetrievalQA.from_chain_type(
+            llm=self.llm,
+            retriever=self.db4,
+            chain_type="stuff"
         )
         # Stream the output
-        return chain.run(query)
+        return qa.run(query=query)
 
 
      

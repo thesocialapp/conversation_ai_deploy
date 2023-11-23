@@ -37,8 +37,12 @@ def ask(request):
         return jsonify(message='Missing question'), 400
     
     print(f"Question: {question}")
-
-    doc = Document()
-    docs = doc.query(question)
-    return jsonify(success=True, data=docs), 200
+    try:
+        doc = Document()
+        answer = doc.query(question)
+        return jsonify(success=True, data=answer), 200
+    except Exception as e:
+        print(e)
+        return jsonify(message='Error asking question'), 500
+    
     
