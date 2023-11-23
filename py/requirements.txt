@@ -43,7 +43,7 @@ pytesseract
 pinecone-client
 
 # Chroma DB
-chromadb
+chromadb==0.4.0
 
 # For storing pdf's and etc
 sentence_transformers
@@ -59,3 +59,6 @@ jq
 
 # For extracting images
 rapidocr-onnxruntime
+
+# This is needed in order to for OpenAIEmbeddings to work
+tiktoken

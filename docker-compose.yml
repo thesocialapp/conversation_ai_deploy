@@ -45,6 +45,9 @@ services:
   chromadb:
     image: ghcr.io/chroma-core/chroma:latest
     container_name: chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ALLOW_RESET=TRUE
     volumes:
       - index_data:/chroma/.chroma/index
     ports:

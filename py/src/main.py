@@ -1,8 +1,8 @@
 from elevenlabs import set_api_key
 from flask import Flask
 import configs
-from routes import documents_route, health_route
-
+from ai.vdb import VectorDb
+from routes import documents_route, health_route, query_route
 from redis_init import run_redis_thread
 
 app = Flask(__name__)
@@ -10,6 +10,7 @@ app = Flask(__name__)
 # Register blueprints
 app.register_blueprint(documents_route.files_bp, url_prefix='/api')
 app.register_blueprint(health_route.health_bp, url_prefix='/api')
+app.register_blueprint(query_route.query_bp, url_prefix='/api')
 
 # Change environment based on configs
 app.config['DEBUG'] = configs.env == 'development'
@@ -26,3 +27,6 @@ if __name__ == "__main__":
     run_redis_thread()
     # Start flask app
     start_app()
+
+    # Initialize the vector database
+    VectorDb.get_instance()
