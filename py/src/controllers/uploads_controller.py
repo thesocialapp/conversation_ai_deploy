@@ -206,7 +206,7 @@ def crop_image(element: LTFigure, pageObj: PageObject):
     pageObj.mediabox.upper_right = (image_right, image_top)
 
     cropped_pdf_writer = PdfWriter()
-    cropped_pdf_writer.addpage(pageObj)
+    cropped_pdf_writer.add_page(pageObj)
 
 
     # Save the image in a temporary file
