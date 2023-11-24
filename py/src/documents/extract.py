@@ -16,9 +16,6 @@ def extract_text_content(file_base64):
             tmp.flush()
             pdfReader = PdfReader(tmp.name)
 
-            logging.info(f"Number of pages: {len(pdfReader.pages)}")
-            print(f"Number of pages: {len(pdfReader.pages)}")
-
             # Loop through all the pages and extract the text
             for num in range(len(pdfReader.pages)):
                 page = pdfReader.pages[num]
@@ -29,6 +26,5 @@ def extract_text_content(file_base64):
 
         return extracted_text    
     except Exception as e:
-        print(f"Error extracting text from pdf: {e}")
         logging.error(f"Error extracting text from pdf: {e}")
         return ""
