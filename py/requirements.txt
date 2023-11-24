@@ -4,7 +4,7 @@ redis==2.10.6
 
 # For API request, needed more for checking health status and 
 # future changes
-flask
+flask==2.3.3
 
 # For reading .env files
 python-dotenv
@@ -62,3 +62,8 @@ rapidocr-onnxruntime
 
 # This is needed in order to for OpenAIEmbeddings to work
 tiktoken
+
+flask-socketio==4.3.1
+
+# 
+Werkzeug==2.3.7
