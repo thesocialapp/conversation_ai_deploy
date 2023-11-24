@@ -2,14 +2,12 @@
 # This is where we initialize the AI's database.  We will be using Chroma DB
 import logging
 import chromadb
-from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-from langchain.embeddings.openai import OpenAIEmbeddings
 import configs
+from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain.vectorstores import chroma
 from langchain.chat_models import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.schema import StrOutputParser
-from langchain.chains import RetrievalQA
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.schema.runnable import RunnablePassthrough
 # Create a VectorDb singleton that initializes chromadb and allows it to be accessinle across the application
@@ -28,6 +26,7 @@ class VectorDb:
         self.db = self.__setup_client()
         self.collection_name = collection_name
         self.llm = ChatOpenAI(
+            openai_api_key=configs.openAiKey,
             streaming=True,
             model="gpt-3.5-turbo",
             callbacks=[StreamingStdOutCallbackHandler()],
@@ -101,7 +100,7 @@ class VectorDb:
         
     # Create a document using chromadb
     def create_document(self, document, metadatas, ids):
-        all_cols = self.db.list_collections()
+        
 
         try:
             col = self.db.get_collection("ai_pdf")
@@ -118,7 +117,7 @@ class VectorDb:
     # Create a vector store using chromadb
     def __create(self, collection_name, embedding_function_name):
         embedding_function = SentenceTransformerEmbeddings(model_name=embedding_function_name)
-    
+
         db4 = chroma.Chroma(
             client=self.db,
             collection_name=collection_name,
@@ -134,14 +133,27 @@ class VectorDb:
         return "\n\n".join(d.page_content for d in docs)
     
     def query_prompt(self, query: str):
-        qa = RetrievalQA.from_chain_type(
-            llm=self.llm,
-            retriever=self.db4,
-            chain_type="stuff"
+        prompt = PromptTemplate.from_template(
+            """You are an assistant for question-answering tasks. \
+                Use the following pieces of retrieved context to answer the question. \
+                If you don't know the answer, just say that you don't know. \
+                Keep the answer concise.\
+                {context}
+                Question: {question}
+            """
         )
-        # Stream the output
-        return qa.run(query=query)
 
+        # Build the chain that will yiels a stream of answers
+        chain = (
+            {
+                "context": self.db4 | self._format_docs, "question": RunnablePassthrough()
+            }
+            | prompt
+            | self.llm
+            | StrOutputParser()
+        )
+        
+        return chain.invoke(query)
 
      
 

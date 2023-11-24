@@ -4,7 +4,7 @@ redis==2.10.6
 
 # For API request, needed more for checking health status and 
 # future changes
-flask==2.3.3
+flask
 
 # For reading .env files
 python-dotenv
@@ -52,7 +52,7 @@ sentence_transformers
 unstructured
 
 # 
-python-socketio==4.6.0
+python-socketio==5.0.2
 
 # For handling JSON, used by JSONLoader for langchain
 jq
@@ -63,7 +63,7 @@ rapidocr-onnxruntime
 # This is needed in order to for OpenAIEmbeddings to work
 tiktoken
 
-flask-socketio==4.3.1
+# Socket IO wrapper for Flask
+flask-socketio==5.3.2
 
-# 
-Werkzeug==2.3.7
+eventlet

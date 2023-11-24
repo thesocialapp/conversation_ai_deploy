@@ -10,5 +10,4 @@ def upload_pdf():
     # Accept a pdf file and read its contents
     # Send the contents to the AI service to summarize
     # Return the summarized text
-
     return controller.process_upload_pdf(request)

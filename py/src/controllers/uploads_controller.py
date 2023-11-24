@@ -21,6 +21,8 @@ def __allowed_file(filename):
 def process_upload_pdf(request):
     # Read the file and extract the text
     try:
+        # List everything in the request
+        print(f"Request: {request.files}")
         # Check if we have files in the request otherwise sent the warning
         if 'document' not in request.files:
             return jsonify(message='No file found in request'), 400

@@ -1,5 +1,4 @@
 import base64
-import io
 import os
 from pypdf import PdfReader
 import logging

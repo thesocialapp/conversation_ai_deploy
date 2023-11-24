@@ -15,8 +15,7 @@ def load_docs(request):
 
     if not uuids:
         return jsonify(message='Missing ids'), 400
-    
-    print(f"Loading documents with ids: {uuids}")
+
 
     doc = Document()
     docs = doc.find_all_docs(uuids)
@@ -36,7 +35,6 @@ def ask(request):
     if not question:
         return jsonify(message='Missing question'), 400
     
-    print(f"Question: {question}")
     try:
         doc = Document()
         answer = doc.query(question)
