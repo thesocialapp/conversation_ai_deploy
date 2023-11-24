@@ -102,17 +102,16 @@ class VectorDb:
     # Create a document using chromadb
     def create_document(self, document, metadatas, ids):
         all_cols = self.db.list_collections()
-        print(f"List of collections: {all_cols}")
+
         try:
             col = self.db.get_collection("ai_pdf")
-            print(f"Adding document to collection {type(document)} {document}")
+            
             # I need to map the document to extract the page content
             embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
             embs = embeddings.embed_documents(texts=document)
             doc = col.add(documents=document, metadatas=metadatas, ids=ids, embeddings=embs)
             return doc
         except Exception as e:
-            print(e)
             logging.error(f"Error adding document to database: {e}")
             return None
     
