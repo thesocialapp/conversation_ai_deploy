@@ -13,6 +13,7 @@ def extract_text_content(file_base64):
         with NamedTemporaryFile(delete=False) as tmp:
             tmp.write(file_data)
             tmp.flush()
+            
             pdfReader = PdfReader(tmp.name)
 
             # Loop through all the pages and extract the text

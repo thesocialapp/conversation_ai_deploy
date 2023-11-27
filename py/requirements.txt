@@ -66,4 +66,6 @@ tiktoken
 # Socket IO wrapper for Flask
 flask-socketio==5.3.2
 
+decouple
+
 eventlet
